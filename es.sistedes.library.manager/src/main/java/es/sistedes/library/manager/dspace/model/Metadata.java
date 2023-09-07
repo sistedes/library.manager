@@ -96,6 +96,9 @@ public class Metadata {
 	@JsonProperty("person.email")
 	protected List<MetadataEntry> personEmails = new ArrayList<>();
 	
+	@JsonProperty("person.web")
+	protected List<MetadataEntry> personWebs = new ArrayList<>();
+	
 	@JsonProperty("dc.contributor.signature")
 	protected List<MetadataEntry> contributorsSignatures = new ArrayList<>();
 	
@@ -379,6 +382,24 @@ public class Metadata {
 		this.personEmails.clear();
 		for (int i = 0; i < emails.size(); i++) {
 			this.personEmails.add(new MetadataEntry(emails.get(i), i + 1));
+		}
+	}
+	
+	public List<String> getPersonWebs() {
+		return personWebs.stream().map(w ->  w.getValue()).collect(Collectors.toUnmodifiableList());
+	}
+	
+	public void addPersonWeb(String web) {
+		if (StringUtils.isBlank(web)) return;
+		this.personWebs.add(new MetadataEntry(web));
+	}
+	
+	@JsonIgnore
+	public void setPersonWebs(List<String> webs) {
+		if (this.personWebs == null) return;
+		this.personWebs.clear();
+		for (int i = 0; i < webs.size(); i++) {
+			this.personWebs.add(new MetadataEntry(webs.get(i), i + 1));
 		}
 	}
 	

@@ -178,6 +178,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					if (!dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
 						dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
 					}
+					// Add the web if it doesn't exist yet
+					if (!dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
+						dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
+					}
 				}
 				dsAuthor.save();
 				logger.info(MessageFormat.format("Updated Author for ''{0}''", author));

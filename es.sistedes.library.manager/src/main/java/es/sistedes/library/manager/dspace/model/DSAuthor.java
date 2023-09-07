@@ -57,6 +57,18 @@ public class DSAuthor extends DSItem {
 	public void setEmails(List<String> emails) {
 		metadata.setPersonEmails(emails);
 	}
+	
+	public List<String> getWebs() {
+		return metadata.getPersonWebs().stream().map(e -> e.toLowerCase()).collect(Collectors.toList());
+	}
+	
+	public void addWeb(String email) {
+		metadata.addPersonWeb(email);
+	}
+	
+	public void setWebs(List<String> webs) {
+		metadata.setPersonWebs(webs);
+	}
 
 	public List<String> getAffiliations() {
 		return metadata.getPersonAffiliations();
@@ -107,6 +119,7 @@ public class DSAuthor extends DSItem {
 		}
 		result.setAffiliations(author.getSignatures().stream().map(s -> s.getFullAffiliation().trim()).collect(Collectors.toSet()).stream().toList());
 		result.setEmails(author.getSignatures().stream().map(s -> s.getEmail().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
+		result.setWebs(author.getSignatures().stream().map(s -> s.getWeb().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
 		return dsRoot.getItemsEndpoint().createAuthor(result, authorsCollection);
 	}
 
