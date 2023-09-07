@@ -230,8 +230,8 @@ public class DSPublication extends DSItem {
 	
 	public static DSPublication createPublication(DSRoot dsRoot, DSCollection parent, Edition edition, AbstractProceedingsDocument document) {
 		DSPublication result = new DSPublication();
-		result.setTitle(document.getTitle());
-		result.setAbstract(document.getAbstract());
+		result.setTitle(StringUtils.normalizeSpace(document.getTitle()));
+		result.setAbstract(StringUtils.normalizeSpace(document.getAbstract()));
 		result.setKeywords(document.getKeywords());
 		result.setIsPartOf(edition.getFullProceedingsName());
 		result.setPublisher("Sistedes");
