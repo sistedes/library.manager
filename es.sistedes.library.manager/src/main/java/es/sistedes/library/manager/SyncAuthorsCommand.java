@@ -291,7 +291,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try {
 			do {
-				System.out.println(message + " [y/N]: ");
+				System.out.print(message + " [y/N]: ");
 				switch (reader.readLine()) {
 				case "Y":
 				case "y":
