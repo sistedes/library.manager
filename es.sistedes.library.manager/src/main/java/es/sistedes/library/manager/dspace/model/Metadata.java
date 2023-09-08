@@ -26,9 +26,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Metadata {
 	
-//	public static DateFormat DATE_FORMAT_SIMPLE_W_HOUR = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-//	public static DateFormat DATE_FORMAT_SIMPLE = new SimpleDateFormat("yyyy-MM-dd");
-	public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:00'Z'");
+	public static DateFormat DATE_FORMAT_SIMPLE_W_HOUR = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	public static DateFormat DATE_FORMAT_SIMPLE = new SimpleDateFormat("yyyy-MM-dd");
+//	public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:00'Z'");
 	
 	@JsonProperty("dc.title")
 	protected List<MetadataEntry> titles = new ArrayList<>();
@@ -271,18 +271,27 @@ public class Metadata {
 	public Date getDate() {
 		return datesIssued.stream().findFirst().map(d ->  {
 			try {
-				return DATE_FORMAT.parse(d.getValue());
+				return DATE_FORMAT_SIMPLE.parse(d.getValue());
 			} catch (ParseException e1) {
-				throw new RuntimeException(e1);
+				try {
+					return DATE_FORMAT_SIMPLE_W_HOUR.parse(d.getValue());
+				} catch (ParseException e2) {
+					throw new RuntimeException(e2);
+				}
 			}
 		}).orElse(null);
 	}
 
+	@SuppressWarnings("deprecation")
 	@JsonIgnore
 	public void setDate(Date date) {
 		if (date == null) return;
 		this.datesIssued.clear();
-		this.datesIssued.add(new MetadataEntry(DATE_FORMAT.format(date)));
+		if (date.getHours() == 0 && date.getMinutes() == 0) {
+			this.datesIssued.add(new MetadataEntry(DATE_FORMAT_SIMPLE.format(date)));
+		} else {
+			this.datesIssued.add(new MetadataEntry(DATE_FORMAT_SIMPLE_W_HOUR.format(date)));
+		}
 	}
 
 	public String getIsFormatOf() {
