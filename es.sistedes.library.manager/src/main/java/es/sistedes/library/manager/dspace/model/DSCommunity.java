@@ -12,6 +12,8 @@
 package es.sistedes.library.manager.dspace.model;
 
 import java.text.MessageFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -196,16 +198,31 @@ public class DSCommunity extends AbstractHateoas {
 		this.metadata.setAbstract(_abstract);
 	}
 	
+	/**
+	 * @return the creation date
+	 */
+	public Date getDate() {
+		return this.metadata.getDate();
+	}
+	
+	/**
+	 * @param date the creation date
+	 */
+	public void setDate(Date date) {
+		this.metadata.setDate(date);
+	}
+	
 	public List<DSCollection> getCollections() {
 		return CommunitiesEndpoint.getCollectionsEndpoint(this).getAll();
 	}
-	
+
 	public static DSCommunity createSubCommunity(DSRoot dsRoot, DSCommunity topCommunity, Edition edition) {
 		DSCommunity result = new DSCommunity();
 		result.setTitle(MessageFormat.format("{0} ({1})", edition.getShortName(), edition.getLocation()));
 		result.setSistedesIdentifier(edition.getSistedesHandle());
 		result.setAbstract(edition.getAbstract());
 		result.setDescription("<p>" + edition.getAbstract().replaceAll("\\R", "</p><p>") + "</p>");
+		result.setDate(Calendar.getInstance().getTime());
 		return dsRoot.getCommunitiesEndpoint().createSubCommunity(result, topCommunity);
 	}
 }

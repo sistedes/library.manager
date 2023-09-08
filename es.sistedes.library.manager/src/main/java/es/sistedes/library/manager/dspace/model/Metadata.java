@@ -269,8 +269,16 @@ public class Metadata {
 	}
 	
 	public Date getDate() {
-		return datesAvailable.stream().findFirst().map(d ->  {
-			try { return DATE_FORMAT.parse(d.getValue()); } catch (ParseException e) { throw new RuntimeException(e); }
+		return datesIssued.stream().findFirst().map(d ->  {
+			try {
+				return DATE_FORMAT_SIMPLE.parse(d.getValue());
+			} catch (ParseException e1) {
+				try {
+					return DATE_FORMAT_SIMPLE_W_HOUR.parse(d.getValue());
+				} catch (ParseException e2) {
+					throw new RuntimeException(e2);
+				}
+			}
 		}).orElse(null);
 	}
 
