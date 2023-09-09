@@ -72,9 +72,10 @@ public class DSpaceConnectionManager {
 	public static WebClient buildClient(URI baseUri) {
 		return WebClient.builder().baseUrl(baseUri != null ? baseUri.toString() : null).filter(CsrfClientExchangeFilterFunction.INSTANCE)
 				.codecs(clientDefaultCodecsConfigurer -> {
-					
 					clientDefaultCodecsConfigurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(createDefaultObjectMapper(), MediaType.APPLICATION_JSON));
-				}).build();
+				})
+				.codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(1024 * 1024))
+				.build();
 	}
 	
 	public static ObjectMapper createDefaultObjectMapper() {
