@@ -179,7 +179,8 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
 					}
 					// Add the web if it doesn't exist yet
-					if (!dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
+					if (signature.getWeb() != null 
+							&& !dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
 						dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
 					}
 				}
