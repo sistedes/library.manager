@@ -76,7 +76,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	@Option(names = { "-r", "--dry-run" }, description = "Do not perform any modifications.")
 	private boolean dryRun = false;
 	
-	@Option(names = { "-c", "--force" }, 
+	@Option(names = { "-F", "--force" }, 
 			description = "Force execution, discarding existing information about identified authors already existing in the Sistedes Digital Library.")
 	private boolean force = false;
 	

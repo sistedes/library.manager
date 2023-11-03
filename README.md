@@ -102,12 +102,12 @@ Next, we describe the CLI options for each subcommand.
 As aforementioned, this command takes an EasyChair dump file, and initializes a set of JSON files (together with the corresponding submission files) in the specified directory. These JSON files can be later refined to produce the full proceedings.
 
 ```
-Usage: java -jar <this-file.jar> init [-f] -a=ACRONYM [-i=DIR] [-o=DIR]
+Usage: java -jar <this-file.jar> init [-F] -a=ACRONYM [-i=DIR] [-o=DIR]
                                       [-p=PATTERN] -x=FILE -y=YEAR
 Initializes the JSON files required to generate the proceedings of a Sistedes
 conference from EasyChair data.
   -a, --acronym=ACRONYM   Acronym of the conference to be prepared.
-  -f, --force             Force execution, even if submission files are
+  -F, --force             Force execution, even if submission files are
                             overwritten.
   -i, --input=DIR         Input directory where the source PDF files must be
                             looked for.
@@ -128,7 +128,7 @@ conference from EasyChair data.
 Synchronizes the authors information between the local submissions and the Sistedes Digital Library, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` the user will be asked whether found authors are a match or not. This command may take some time.
 
 ```
-Usage: java -jar <this-file.jar> sync-authors [-cir] -e=E-MAIL -f=DIR
+Usage: java -jar <this-file.jar> sync-authors [-Fir] -e=E-MAIL -f=DIR
        -p=PASSWORD -u=URI
 Synchronizes the authors information between the local submissions and the
 Sistedes Digital Library, trying to match existing authors in the library with
@@ -136,7 +136,7 @@ local authors. In case the authors do not exist in the library, creates them.
 Already identified authors will be skipped when running in normal mode. In
 forced mode, information about  already identified authors will be discarded
 and a new match will be attempted.
-  -c, --force               Force execution, discarding existing information
+  -F, --force               Force execution, discarding existing information
                               about identified authors already existing in the
                               Sistedes Digital Library.
   -e, --email=E-MAIL        E-mail of the account required to log in the
@@ -166,11 +166,11 @@ any modification.
 Publishes the conference proceedings in the Sistedes Digital Library, publishing one document at a time. This may take some time.
 
 ```
-Usage: java -jar <this-file.jar> publish [-c] -e=E-MAIL -f=FILE -p=PASSWORD
+Usage: java -jar <this-file.jar> publish [-F] -e=E-MAIL -f=FILE -p=PASSWORD
        -u=URI
 Publishes the specified edition in the Sistedes Digital Library. Published
 elements will be recorded locally to avoid recreating them.
-  -c, --force               Force execution, even if elements have been already
+  -F, --force               Force execution, even if elements have been already
                               created or if validation errors exist.
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.

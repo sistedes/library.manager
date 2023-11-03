@@ -76,7 +76,7 @@ class PublishEditionCommand implements Callable<Integer> {
 	@Option(names = { "-u", "--uri" }, paramLabel = "URI", required = true, description = "URI of the root endpoint of the DSpace API.")
 	private URI uri;
 
-	@Option(names = { "-c", "--force" }, description = "Force execution, even if elements have been already created or if validation errors exist.")
+	@Option(names = { "-F", "--force" }, description = "Force execution, even if elements have been already created or if validation errors exist.")
 	private boolean force = false;
 
 	@Option(names = { "-e",

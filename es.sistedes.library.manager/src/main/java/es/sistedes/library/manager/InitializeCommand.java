@@ -72,7 +72,7 @@ class InitializeCommand implements Callable<Integer> {
 					+ "Default value is {acronym}_{year}_paper_{id}.pdf.")
 	private String pattern;
 
-	@Option(names = { "-f", "--force" }, 
+	@Option(names = { "-F", "--force" }, 
 			description = "Force execution, even if submission files are overwritten.")
 	private boolean force = false;
 	
