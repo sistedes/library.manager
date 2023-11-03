@@ -49,12 +49,12 @@ public class EasyChairImporter implements ConferenceDataImporter {
 		conferenceData = new ConferenceData(editionFile, acronym, year);
 		try (Workbook workbook = new XSSFWorkbook(new FileInputStream(xslxFile))) {
 			// Create a dummy edition
-			conferenceData.edition = Edition.createTemplate(acronym, year);
+			conferenceData.setEdition(Edition.createTemplate(acronym, year));
 
 			// Tracks are optional, it depends on the conference whether they exist or not,
 			// but if they exist, they **must** be read before the Submissions are processed
-			Optional.ofNullable(workbook.getSheet("Tracks")).ifPresent(s -> conferenceData.tracks.putAll(readTracks(s)));
-			conferenceData.tracks.values().forEach(track -> HandleGenerator.generateHandle(track, acronym, year).ifPresent(track::setSistedesHandle));
+			Optional.ofNullable(workbook.getSheet("Tracks")).ifPresent(s -> conferenceData.setTracks(readTracks(s)));
+			conferenceData.getTracks().values().forEach(track -> HandleGenerator.generateHandle(track, acronym, year).ifPresent(track::setSistedesHandle));
 
 			// Now, try to read Authors and Submission, which should always exist
 			if (workbook.getSheet("Authors") == null)
@@ -68,8 +68,8 @@ public class EasyChairImporter implements ConferenceDataImporter {
 
 			// Now read the submissions, and pass the tracks and authoring information so
 			// that submissions can be completely defined
-			conferenceData.submissions.putAll(readSubmissions(workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.tracks));
-			conferenceData.submissions.values().stream().forEach(submission -> {
+			conferenceData.setSubmissions(readSubmissions(workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.getTracks()));
+			conferenceData.getSubmissions().values().stream().forEach(submission -> {
 				HandleGenerator.generateHandle(submission, acronym, year).ifPresent(submission::setSistedesHandle);
 				importSubmissionFile(submission, inputDir, pattern, force);
 			});
@@ -179,8 +179,8 @@ public class EasyChairImporter implements ConferenceDataImporter {
 	 * @param force
 	 */
 	private void importSubmissionFile(Submission submission, File sourceDir, String pattern, boolean force) {
-		String filename = StringUtils.replaceEachRepeatedly(pattern, new String[] { "{acronym}", "{year}", "{id}" },
-				new String[] { conferenceData.acronym, String.valueOf(conferenceData.year), String.valueOf(submission.getId()) });
+		String filename = StringUtils.replaceEachRepeatedly(pattern, new String[] { "{acronym}", "{year}", "{id}" }, new String[] {
+				conferenceData.getEdition().getAcronym(), String.valueOf(conferenceData.getEdition().getYear()), String.valueOf(submission.getId()) });
 		File sourceDoc = sourceDir.toPath().resolve(filename).toFile();
 		File targetDoc = new File(conferenceData.getWorkingDir(), getDataFilename(submission).orElseThrow());
 		if (!targetDoc.exists() || force) {
@@ -224,11 +224,11 @@ public class EasyChairImporter implements ConferenceDataImporter {
 	private Optional<String> getDataFilename(AbstractProceedingsDocument doc) {
 		String rawName = null;
 		if (doc instanceof Preliminaries pre) {
-			rawName = conferenceData.getEdition().getPreliminariesDocsFilenamePattern().replace("{acronym}", conferenceData.acronym)
-					.replace("{year}", String.valueOf(conferenceData.year)).replace("{id}", String.valueOf(pre.getId()));
+			rawName = conferenceData.getEdition().getPreliminariesDocsFilenamePattern().replace("{acronym}", conferenceData.getEdition().getAcronym())
+					.replace("{year}", String.valueOf(conferenceData.getEdition().getYear())).replace("{id}", String.valueOf(pre.getId()));
 		} else if (doc instanceof Submission sub) {
-			rawName = conferenceData.getEdition().getSubmissionsDocsFilenamePattern().replace("{acronym}", conferenceData.acronym)
-					.replace("{year}", String.valueOf(conferenceData.year)).replace("{id}", String.valueOf(sub.getId()));
+			rawName = conferenceData.getEdition().getSubmissionsDocsFilenamePattern().replace("{acronym}", conferenceData.getEdition().getAcronym())
+					.replace("{year}", String.valueOf(conferenceData.getEdition().getYear())).replace("{id}", String.valueOf(sub.getId()));
 		}
 		return Optional.of(StringUtils.stripAccents(rawName));
 	}

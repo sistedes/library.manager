@@ -39,39 +39,39 @@ public class ConferenceData {
 	/**
 	 * {@link Edition} data of the conference
 	 */
-	protected Edition edition;
+	private Edition edition;
 
 	/**
 	 * {@link Map} with the tracks of the conference, identified by track acronym
 	 */
-	protected Map<Integer, Track> tracks = new TreeMap<>();
+	private Map<Integer, Track> tracks = new TreeMap<>();
 
 	/**
 	 * {@link Map} with the submissions of the conference, identified by submission
 	 * number
 	 */
-	protected Map<Integer, Submission> submissions = new TreeMap<>();
+	private Map<Integer, Submission> submissions = new TreeMap<>();
 
 	/**
 	 * {@link List} with the preliminaries of the conference
 	 */
-	protected List<Preliminaries> preliminaries = new ArrayList<>();
+	private List<Preliminaries> preliminaries = new ArrayList<>();
 
 	/**
 	 * {@link Map} with the authors' information, identified by person id.
 	 * The same person may sign a submission with different Author information. 
 	 */
-	protected Map<Integer, Author> authors = null;
+	private Map<Integer, Author> authors = null;
 
 	/**
 	 * Acronym of the conference this {@link ConferenceData} represents
 	 */
-	protected String acronym;
+	private String acronym;
 
 	/**
 	 * Year of the edition this {@link ConferenceData} represents
 	 */
-	protected int year;
+	private int year;
 
 	/**
 	 * Edition file from where the {@link ConferenceData} will be loaded. Additional
@@ -89,7 +89,7 @@ public class ConferenceData {
 	/**
 	 * Private default constructor
 	 */
-	public ConferenceData() {
+	private ConferenceData() {
 		mapper = JsonMapper.builder().build();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -138,6 +138,10 @@ public class ConferenceData {
 		return edition;
 	}
 
+	protected void setEdition(Edition edition) {
+		this.edition = edition;
+	}
+	
 	/**
 	 * Return an unmodifiable view of the tracks map
 	 * 
@@ -145,6 +149,11 @@ public class ConferenceData {
 	 */
 	public Map<Integer, Track> getTracks() {
 		return Collections.unmodifiableMap(tracks);
+	}
+	
+	protected void setTracks(Map<Integer, Track> tracks) {
+		this.tracks.clear();
+		this.tracks.putAll(tracks);
 	}
 
 	/**
@@ -168,6 +177,11 @@ public class ConferenceData {
 		return Collections.unmodifiableMap(submissions);
 	}
 
+	protected void setSubmissions(Map<Integer, Submission> submissions) {
+		this.submissions.clear();
+		this.submissions.putAll(submissions);
+	}
+	
 	/**
 	 * Return an unmodifiable view of the preliminaries
 	 * 
@@ -177,6 +191,11 @@ public class ConferenceData {
 		return Collections.unmodifiableList(preliminaries);
 	}
 
+	protected void setPreliminaries(List<Preliminaries> preliminaries) {
+		this.preliminaries.clear();
+		this.preliminaries.addAll(getPreliminaries());
+	}
+	
 	/**
 	 * Returns an unmodifiable view of all the elements in the proceedings
 	 * 
