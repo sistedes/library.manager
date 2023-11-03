@@ -25,6 +25,10 @@ public abstract class AbstractProceedingsDocument extends AbstractProceedingsEle
 	protected List<String> keywords = new ArrayList<>();
 
 	protected String filename;
+	
+	protected String license = "CC BY-NC-ND 4.0";
+
+	protected String rightsUri = "https://creativecommons.org/licenses/by-nc-nd/4.0/";
 
 	protected Type type;
 
@@ -84,6 +88,32 @@ public abstract class AbstractProceedingsDocument extends AbstractProceedingsEle
 		this.filename = filename;
 	}
 
-	
-	
+	/**
+	 * @return the license
+	 */
+	public String getLicense() {
+		return license;
+	}
+
+	/**
+	 * @param license the license to set
+	 */
+	public void setLicense(String license) {
+		this.license = license;
+	}
+
+	/**
+	 * @return the rightsUri
+	 */
+	public String getRightsUri() {
+		return rightsUri;
+	}
+
+	/**
+	 * @param rightsUri the rightsUri to set
+	 */
+	public void setRightsUri(String rightsUri) {
+		this.rightsUri = rightsUri;
+	}
+
 }

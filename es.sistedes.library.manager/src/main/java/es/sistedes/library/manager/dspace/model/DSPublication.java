@@ -238,8 +238,8 @@ public class DSPublication extends DSItem {
 		result.setProvenance(("Automatically imported from an EasyChair dump using the Sistedes Library Manager (see https://github.com/sistedes/) on "
 				+ ZonedDateTime.ofInstant(Instant.now().truncatedTo(ChronoUnit.SECONDS), ZoneId.of("GMT"))).replace("[GMT]", " (GMT)"));
 		result.setSistedesIdentifier(document.getSistedesHandle());
-		result.setLicense("CC BY-NC-ND 4.0");
-		result.setRightsUri("https://creativecommons.org/licenses/by-nc-nd/4.0/");
+		result.setLicense(document.getLicense());
+		result.setRightsUri(document.getRightsUri());
 		result.setPublicationType(document.getType().getPublicationTypeName());
 		result.setSistedesConferenceName(edition.getConferenceName());
 		result.setSistedesConferenceAcronym(edition.getAcronym());
