@@ -19,13 +19,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.sistedes.library.manager.ConferenceDataImporter;
+import es.sistedes.library.manager.IConferenceDataImporter;
 import es.sistedes.library.manager.HandleGenerator;
 import es.sistedes.library.manager.excel.NoSuchSheetException;
 import es.sistedes.library.manager.excel.SheetReader;
 import es.sistedes.library.manager.proceedings.model.Submission.Type;
 
-public class EasyChairImporter implements ConferenceDataImporter {
+public class EasyChairImporter implements IConferenceDataImporter {
 
 	private static final Logger logger = LoggerFactory.getLogger(EasyChairImporter.class);
 
