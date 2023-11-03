@@ -20,6 +20,7 @@ import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
+import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;

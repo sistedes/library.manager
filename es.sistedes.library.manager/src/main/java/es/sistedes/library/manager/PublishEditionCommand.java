@@ -43,6 +43,7 @@ import es.sistedes.library.manager.dspace.model.DSPublication;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.dspace.model.RelationshipType;
 import es.sistedes.library.manager.proceedings.model.AbstractProceedingsDocument;
+import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import es.sistedes.library.manager.proceedings.model.Edition;
 import es.sistedes.library.manager.proceedings.model.Preliminaries;
 import es.sistedes.library.manager.proceedings.model.Signature;

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.proceedings.model.AbstractProceedingsElement;
+import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import es.sistedes.library.manager.proceedings.model.Edition;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;

@@ -34,6 +34,7 @@ import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.proceedings.model.Author;
+import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import es.sistedes.library.manager.proceedings.model.Signature;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;

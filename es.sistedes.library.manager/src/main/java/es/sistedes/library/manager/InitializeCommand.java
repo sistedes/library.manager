@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
+import es.sistedes.library.manager.proceedings.model.ConferenceData;
+import es.sistedes.library.manager.proceedings.model.EasyChairImporter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -80,7 +82,7 @@ class InitializeCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		logger.info(MessageFormat.format("Importing EasyChair data from ''{0}''", xslxFile));
-		ConferenceData conferenceData = ConferenceData.createFrom(xslxFile, inputDir, outputDir, acronym, year, pattern, force);
+		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, acronym, year, pattern, force).getData();
 		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
 		conferenceData.save(force);
