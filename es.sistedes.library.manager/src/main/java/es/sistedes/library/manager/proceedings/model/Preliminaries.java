@@ -29,7 +29,7 @@ public class Preliminaries extends AbstractProceedingsDocument {
 	 * @param year
 	 * @return
 	 */
-	public static Preliminaries createTemplate(String acronym, int year) {
+	public static Preliminaries createTemplate(String prefix, String acronym, int year) {
 		Preliminaries preliminaries = new Preliminaries();
 		preliminaries.setId(1);
 		preliminaries.setTitle("Prefacio");
@@ -45,7 +45,7 @@ public class Preliminaries extends AbstractProceedingsDocument {
 				email = "nobody@example.com";
 			}
 		});
-		HandleGenerator.generateHandle(preliminaries, acronym, year).ifPresent(preliminaries::setSistedesHandle);
+		HandleGenerator.generateHandle(preliminaries, prefix, acronym, year).ifPresent(preliminaries::setSistedesHandle);
 		preliminaries.setFilename("prefacio.md");
 		return preliminaries;
 	}

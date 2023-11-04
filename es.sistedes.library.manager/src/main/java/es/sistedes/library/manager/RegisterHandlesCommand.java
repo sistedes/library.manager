@@ -65,7 +65,7 @@ class RegisterHandlesCommand implements Callable<Integer> {
 	@Option(names = { "-f", "--edition-file" }, paramLabel = "FILE", required = true, description = "JSON file including the conference edition metadata.")
 	private File editionFile;
 
-	@Option(names = { "-x", "--prefix" }, paramLabel = "PREFIX", required = true, description = "Handle prefix.")
+	@Option(names = { "-P", "--prefix" }, paramLabel = "PREFIX", required = true, description = "Handle prefix.")
 	private String prefix;
 
 	@Option(names = { "-k",

@@ -103,7 +103,7 @@ As aforementioned, this command takes an EasyChair dump file, and initializes a 
 
 ```
 Usage: java -jar <this-file.jar> init [-F] -a=ACRONYM [-i=DIR] [-o=DIR]
-                                      [-p=PATTERN] -x=FILE -y=YEAR
+                                      [-p=PATTERN] -P=PREFIX -x=FILE -y=YEAR
 Initializes the JSON files required to generate the proceedings of a Sistedes
 conference from EasyChair data.
   -a, --acronym=ACRONYM   Acronym of the conference to be prepared.
@@ -117,6 +117,7 @@ conference from EasyChair data.
                             {acronym} {year} and {id} will be substituted by
                             the corresponding values. Default value is {acronym}
                             _{year}_paper_{id}.pdf.
+  -P, --prefix=PREFIX     Handle prefix.
   -x, --xslx=FILE         XSLX file as downloaded from the EasyChair
                             'Conference data download' menu.
   -y, --year=YEAR         Year of the edition to be prepared.
@@ -186,14 +187,14 @@ Registers the Handles of the newly published documents in the Sistedes Handle se
 
 ```
 Usage: java -jar <this-file.jar> register-handles -f=FILE -k=FILE [-p=PASSWORD]
-       -x=PREFIX
+       -P=PREFIX
 Registers the Sistedes Handles such that they point to the Digital Library
 internal Handles.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
   -k, --key-file=FILE       File with the secure key to authenticate in the
                               Handle system.
   -p, --password=PASSWORD   Password to unlock the key file.
-  -x, --prefix=PREFIX       Handle prefix.
+  -P, --prefix=PREFIX       Handle prefix.
   ```
 
 ### Dump Handle commands in a batch file (`dump-handles-batch`)
@@ -202,7 +203,7 @@ Dump a batch text file with all the commands to (optionally delete) and create t
 
 ```
 Usage: java -jar <this-file.jar> dump-handles-batch [-d] -f=FILE [-o=FILE]
-       -x=PREFIX
+       -P=PREFIX
 Dumps a set of Handle commands that can be run as a batch file to (optionally
 delete) and create all the Handles in the specified edition.
   -d, --delete              Also issue an initial DELETE command in order to
@@ -210,7 +211,7 @@ delete) and create all the Handles in the specified edition.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
   -o, --output=FILE         If specified, the Handle commands will be saved in
                               FILE rather than shown in stdout.
-  -x, --prefix=PREFIX       Handle prefix.
+  -P, --prefix=PREFIX       Handle prefix.
 ```
 
 ### Produce different listings (`list`)

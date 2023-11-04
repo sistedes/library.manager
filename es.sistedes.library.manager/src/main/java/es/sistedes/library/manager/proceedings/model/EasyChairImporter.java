@@ -19,8 +19,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.sistedes.library.manager.IConferenceDataImporter;
 import es.sistedes.library.manager.HandleGenerator;
+import es.sistedes.library.manager.IConferenceDataImporter;
 import es.sistedes.library.manager.excel.NoSuchSheetException;
 import es.sistedes.library.manager.excel.SheetReader;
 import es.sistedes.library.manager.proceedings.model.Submission.Type;
@@ -44,17 +44,17 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * @param force
 	 * @throws IOException
 	 */
-	public EasyChairImporter(File xslxFile, File inputDir, File outputDir, String acronym, int year, String pattern, boolean force) throws IOException {
+	public EasyChairImporter(File xslxFile, File inputDir, File outputDir, String prefix, String acronym, int year, String pattern, boolean force) throws IOException {
 		File editionFile = new File(outputDir, Edition.EDITION_DEFAULT_FILENAME_PATTERN.replace("{acronym}", acronym).replace("{year}", String.valueOf(year)));
-		conferenceData = new ConferenceData(editionFile, acronym, year);
+		conferenceData = new ConferenceData(editionFile, prefix, acronym, year);
 		try (Workbook workbook = new XSSFWorkbook(new FileInputStream(xslxFile))) {
 			// Create a dummy edition
-			conferenceData.setEdition(Edition.createTemplate(acronym, year));
+			conferenceData.setEdition(Edition.createTemplate(prefix, acronym, year));
 
 			// Tracks are optional, it depends on the conference whether they exist or not,
 			// but if they exist, they **must** be read before the Submissions are processed
 			Optional.ofNullable(workbook.getSheet("Tracks")).ifPresent(s -> conferenceData.setTracks(readTracks(s)));
-			conferenceData.getTracks().values().forEach(track -> HandleGenerator.generateHandle(track, acronym, year).ifPresent(track::setSistedesHandle));
+			conferenceData.getTracks().values().forEach(track -> HandleGenerator.generateHandle(track, prefix, acronym, year).ifPresent(track::setSistedesHandle));
 
 			// Now, try to read Authors and Submission, which should always exist
 			if (workbook.getSheet("Authors") == null)
@@ -70,7 +70,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 			// that submissions can be completely defined
 			conferenceData.setSubmissions(readSubmissions(workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.getTracks()));
 			conferenceData.getSubmissions().values().stream().forEach(submission -> {
-				HandleGenerator.generateHandle(submission, acronym, year).ifPresent(submission::setSistedesHandle);
+				HandleGenerator.generateHandle(submission, prefix, acronym, year).ifPresent(submission::setSistedesHandle);
 				importSubmissionFile(submission, inputDir, pattern, force);
 			});
 		}

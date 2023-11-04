@@ -56,6 +56,9 @@ class InitializeCommand implements Callable<Integer> {
         }
         this.year = year;
 	}
+
+	@Option(names = { "-P", "--prefix" }, paramLabel = "PREFIX", required = true, description = "Handle prefix.")
+	private String prefix;
 	
 	@Option(names = { "-x", "--xslx" }, paramLabel = "FILE", required = true, 
 			description = "XSLX file as downloaded from the EasyChair 'Conference data download' menu.")
@@ -82,7 +85,7 @@ class InitializeCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		logger.info(MessageFormat.format("Importing EasyChair data from ''{0}''", xslxFile));
-		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, acronym, year, pattern, force).getData();
+		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, prefix, acronym, year, pattern, force).getData();
 		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
 		conferenceData.save(force);

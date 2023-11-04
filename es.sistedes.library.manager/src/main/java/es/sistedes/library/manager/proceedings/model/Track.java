@@ -70,13 +70,13 @@ public class Track extends AbstractProceedingsElement {
 	 * @param year
 	 * @return
 	 */
-	public static Track createTemplate(String acronym, int year) {
+	public static Track createTemplate(String prefix, String acronym, int year) {
 		Track tracks = new Track();
 		tracks.setId(1);
 		tracks.setAcronym("ST");
 		tracks.setName("Categoría de Ejemplo");
 		tracks.getSubmissions().add(0);
-		HandleGenerator.generateHandle(tracks, acronym, year).ifPresent(tracks::setSistedesHandle);
+		HandleGenerator.generateHandle(tracks, prefix, acronym, year).ifPresent(tracks::setSistedesHandle);
 		return tracks;
 	}
 

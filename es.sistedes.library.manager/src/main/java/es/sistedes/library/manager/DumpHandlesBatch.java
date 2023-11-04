@@ -54,7 +54,7 @@ class DumpHandlesBatch implements Callable<Integer> {
 		this.output = new PrintStream(new File(output));
 	}
 
-	@Option(names = { "-x", "--prefix" }, paramLabel = "PREFIX", required = true, description = "Handle prefix.")
+	@Option(names = { "-P", "--prefix" }, paramLabel = "PREFIX", required = true, description = "Handle prefix.")
 	private String prefix;
 
 	@Option(names = { "-d", "--delete" }, description = "Also issue an initial DELETE command in order to CREATE the Handles from scratch.")

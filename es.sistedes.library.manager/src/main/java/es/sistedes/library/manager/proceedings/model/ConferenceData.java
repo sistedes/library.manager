@@ -106,9 +106,9 @@ public class ConferenceData {
 	 * @param year
 	 * @throws IOException
 	 */
-	protected ConferenceData(File editionFile, String acronym, int year) throws IOException {
+	protected ConferenceData(File editionFile, String prefix, String acronym, int year) throws IOException {
 		this();
-		this.edition = Edition.createTemplate(acronym, year);
+		this.edition = Edition.createTemplate(prefix, acronym, year);
 		this.acronym = edition.getAcronym();
 		this.year = edition.getYear();
 		this.editionFile = editionFile;
@@ -241,10 +241,11 @@ public class ConferenceData {
 	 * @param force
 	 */
 	public void save(boolean force) {
+		String prefix = edition.getSistedesHandle().split("/")[0];
 		saveMetadata(edition, force);
-		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks) : TracksIndex.from(Track.createTemplate(acronym, year)), force);
+		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)), force);
 		if (preliminaries.isEmpty()) {
-			saveMetadata(Preliminaries.createTemplate(acronym, year), true);
+			saveMetadata(Preliminaries.createTemplate(prefix, acronym, year), true);
 		} else {
 			preliminaries.stream().forEach(elt -> {
 				saveMetadata(elt, force);

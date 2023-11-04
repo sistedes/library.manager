@@ -289,7 +289,7 @@ public class Edition extends AbstractProceedingsElement {
 	 * @param year
 	 * @return
 	 */
-	public static Edition createTemplate(String acronym, int year) {
+	public static Edition createTemplate(String prefix, String acronym, int year) {
 		Edition edition = new Edition();
 		edition.setId(1);
 		edition.setAcronym(acronym);
@@ -304,7 +304,7 @@ public class Edition extends AbstractProceedingsElement {
 				+ "al <END> de <MONTH> de {1,number,#}, como parte de las Jornadas Sistedes.\n" +
 				"El programa de {0} {1,number,#} se ha organizado en torno a sesiones temáticas o tracks.", acronym, year));
 		edition.getEditors().add("Doe, J.");
-		HandleGenerator.generateHandle(edition, acronym, year).ifPresent(edition::setSistedesHandle);
+		HandleGenerator.generateHandle(edition, prefix, acronym, year).ifPresent(edition::setSistedesHandle);
 		return edition;
 	}
 }
