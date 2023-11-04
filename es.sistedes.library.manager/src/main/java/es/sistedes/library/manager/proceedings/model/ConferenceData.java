@@ -193,7 +193,7 @@ public class ConferenceData {
 
 	protected void setPreliminaries(List<Preliminaries> preliminaries) {
 		this.preliminaries.clear();
-		this.preliminaries.addAll(getPreliminaries());
+		this.preliminaries.addAll(preliminaries);
 	}
 	
 	/**
