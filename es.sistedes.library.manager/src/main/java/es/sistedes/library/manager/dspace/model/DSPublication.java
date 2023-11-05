@@ -240,7 +240,7 @@ public class DSPublication extends DSItem {
 		result.setSistedesIdentifier(document.getSistedesHandle());
 		result.setLicense(document.getLicense());
 		result.setRightsUri(document.getRightsUri());
-		result.setPublicationType(document.getType().getPublicationTypeName());
+		result.setPublicationType(document.getType().getPublicationType().getName());
 		result.setSistedesConferenceName(edition.getConferenceName());
 		result.setSistedesConferenceAcronym(edition.getAcronym());
 		result.setSistedesEditionName(edition.getFullName());

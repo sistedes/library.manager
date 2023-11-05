@@ -22,29 +22,33 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.WordUtils;
 
+import es.sistedes.library.manager.dspace.model.DSItem;
+
 public class Submission extends AbstractProceedingsDocument {
 
 	public enum Type {
-		JISBD_FULL("completo", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		JISBD_RELEVANT("relevante", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT.getName()),
-		JISBD_SHORT("corto", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		JISBD_TOOL("herramienta", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		JCIS_PUBLISHED("Published", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT.getName()),
-		JCIS_LONG("Long papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		JCIS_SHORT("Short papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		PROLE_ORIGINAL("1", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		PROLE_TUTORIAL("2", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		PROLE_TOOL("3", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		PROLE_PROGRESS("4", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER.getName()),
-		PROLE_RELEVANT("5", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT.getName()),
-		PRELIMINARES("preliminares", es.sistedes.library.manager.dspace.model.DSItem.Type.PRELIMINARS.getName());
+		JISBD_FULL("completo", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		JISBD_RELEVANT("relevante", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
+		JISBD_SHORT("corto", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		JISBD_TOOL("herramienta", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		JCIS_PUBLISHED("Published", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
+		JCIS_LONG("Long papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		JCIS_SHORT("Short papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		PROLE_ORIGINAL("1", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		PROLE_TUTORIAL("2", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		PROLE_TOOL("3", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		PROLE_PROGRESS("4", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
+		PROLE_RELEVANT("5", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
+		PRELIMINARES("preliminares", es.sistedes.library.manager.dspace.model.DSItem.Type.PRELIMINARS), 
+		GENERIC_ABSTRACT("resumen", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
+		GENERIC_PAPER("artículo", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER);
 		
 		private String submissionTypeName;
-		private String publicationTypeName;
+		private DSItem.Type publicationType;
 		
-		Type(String submissionType, String publicationTypeName) {
+		Type(String submissionType, DSItem.Type publicationType) {
 			this.submissionTypeName = submissionType;
-			this.publicationTypeName = publicationTypeName;
+			this.publicationType = publicationType;
 		}
 		
 		public static Type from(String submissionTypeName) {
@@ -56,8 +60,8 @@ public class Submission extends AbstractProceedingsDocument {
 			throw new IllegalArgumentException(MessageFormat.format("No enum constant value ''{0}'' in {1}", submissionTypeName, Type.class.getCanonicalName()));
 		}
 		
-		public String getPublicationTypeName() {
-			return publicationTypeName;
+		public DSItem.Type getPublicationType() {
+			return publicationType;
 		}
 	}
 	

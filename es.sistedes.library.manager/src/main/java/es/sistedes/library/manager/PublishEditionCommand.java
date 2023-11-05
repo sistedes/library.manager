@@ -39,6 +39,7 @@ import es.sistedes.library.manager.dspace.model.DSAuthor;
 import es.sistedes.library.manager.dspace.model.DSBundle;
 import es.sistedes.library.manager.dspace.model.DSCollection;
 import es.sistedes.library.manager.dspace.model.DSCommunity;
+import es.sistedes.library.manager.dspace.model.DSItem;
 import es.sistedes.library.manager.dspace.model.DSPublication;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.dspace.model.RelationshipType;
@@ -48,7 +49,6 @@ import es.sistedes.library.manager.proceedings.model.Edition;
 import es.sistedes.library.manager.proceedings.model.Preliminaries;
 import es.sistedes.library.manager.proceedings.model.Signature;
 import es.sistedes.library.manager.proceedings.model.Submission;
-import es.sistedes.library.manager.proceedings.model.Submission.Type;
 import es.sistedes.library.manager.proceedings.model.Track;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -187,8 +187,7 @@ class PublishEditionCommand implements Callable<Integer> {
 		for (Signature signature : submission.getSignatures()) {
 			logger.debug(MessageFormat.format("Creating authorship for ''{0}''", signature));
 			DSAuthor dsAuthor = dsRoot.getItemsEndpoint().getAuthor(signature.getSistedesUuid()).orElseThrow();
-			// FIXME: These types of submissions may change over the years!!
-			if (submission.getType() == Type.JISBD_RELEVANT || submission.getType() == Type.JCIS_PUBLISHED || submission.getType() == Type.PROLE_RELEVANT) {
+			if (submission.getType().getPublicationType() == DSItem.Type.ABSTRACT) {
 				dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfAbstractRelationship(), dsPublication, dsAuthor);
 			} else {
 				dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfPaperRelationship(), dsPublication, dsAuthor);
