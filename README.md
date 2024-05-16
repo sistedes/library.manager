@@ -88,6 +88,10 @@ Commands:
                         Library. Published elements will be recorded locally to
                         avoid recreating them.
   list                Generates different listings of the conference data.
+  split               (EXPERIMENTAL) Splits a single PDF file containing the
+                        full proceedings of a conference and sets up the JSON
+                        files required to generate the proceedings in the new
+                        Digital Library.
   register-handles    (DEPRECATED) Registers the Sistedes Handles such that
                         they point to the Digital Library internal Handles.
   dump-handles-batch  (DEPRECATED) Dumps a set of Handle commands that can be
@@ -196,7 +200,43 @@ Generates different listings of the conference data.
                             List the authors that have more than one different
                               name in his/her signature.
   -t, --paper-titles        List all the titles of the papers.
-  ```
+```
+
+### EXPERIMENTAL: Split PDF file (`split`)
+
+Splits a single PDF file containing the full proceedings of a conference and sets up the JSON files required to generate the proceedings in the new Digital Library.
+
+```
+Usage: java -jar <this-file.jar> split [-F] -a=ACRONYM [-c=PAGES] [-f=PAGES]
+                                       -i=FILE [-o=DIR] -P=PREFIX [-u=URL]
+                                       -y=YEAR
+(EXPERIMENTAL) Splits a single PDF file containing the full proceedings of a
+conference and sets up the JSON files required to generate the proceedings in
+the new Digital Library.
+  -a, --acronym=ACRONYM   Acronym of the conference to be prepared.
+  -c, --contributions-pages=PAGES
+                          List of the pages where each contribution starts and,
+                            optionally, ends, if a range (inclusive) is
+                            specified. Pages (or ranges) separated by comma
+                            denote contributions in the same session/track.
+                            Pages (or ranges) separated by semicolons denote
+                            papers in different sessions/tracks. The last
+                            element of the list must always be a range. E.g:
+                            10,15,20;25-26,27-30;31,35-40
+  -f, --frontmatter-pages=PAGES
+                          Comma-separated list of pages where each frontmatter
+                            section starts and optionally, ends, if a range
+                            (inclusive) is specified. The last element of the
+                            list must always be a range. E.g.: 1,3,4-5
+  -F, --force             Force execution, even if submission files are
+                            overwritten.
+  -i, --input=FILE        Input PDF file with the full proceedings.
+  -o, --output=DIR        Ouput directory where the generated conference files
+                            should be placed.
+  -P, --prefix=PREFIX     Handle prefix.
+  -u, --grobid-url=URL    Grobid service URL.
+  -y, --year=YEAR         Year of the edition to be prepared.
+```
 
 ### DEPRECATED: ~~Register Handles (`register-handles`)~~
 
@@ -214,7 +254,7 @@ internal Handles.
                               Handle system.
   -p, --password=PASSWORD   Password to unlock the key file.
   -P, --prefix=PREFIX       Handle prefix.
-  ```
+```
 
 ### DEPRECATED: ~~Dump Handle commands in a batch file (`dump-handles-batch`)~~
 
