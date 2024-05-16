@@ -11,8 +11,9 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -89,17 +90,17 @@ public class Track extends AbstractProceedingsElement {
 	 */
 	public static class TracksIndex extends AbstractProceedingsElement {
 
-		private Map<Integer, Track> tracks = new HashMap<>();
+		private List<Track> tracks = new ArrayList<>();
 
 		private TracksIndex() {
 		}
 		
 		private TracksIndex(Track track) {
-			this.tracks.put(track.getId(), track);
+			this.tracks.add(track);
 		}
 		
-		private TracksIndex(Map<Integer, Track> tracks) {
-			this.tracks.putAll(tracks);
+		private TracksIndex(Collection<Track> tracks) {
+			this.tracks.addAll(tracks);
 		}
 
 		/**
@@ -117,14 +118,14 @@ public class Track extends AbstractProceedingsElement {
 		 * @param tracks
 		 * @return
 		 */
-		public static TracksIndex from(Map<Integer, Track> tracks) {
+		public static TracksIndex from(Collection<Track> tracks) {
 			return new TracksIndex(tracks);
 		}
 
 		/**
 		 * @return the tracks
 		 */
-		public Map<Integer, Track> getTracks() {
+		public List<Track> getTracks() {
 			return tracks;
 		}
 

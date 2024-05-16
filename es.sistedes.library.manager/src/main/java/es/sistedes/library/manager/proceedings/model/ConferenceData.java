@@ -224,7 +224,7 @@ public class ConferenceData {
 
 		File tracksFile = new File(getWorkingDir(), edition.getTracksFilenamePattern().replace("{acronym}", acronym).replace("{year}", String.valueOf(year)));
 		if (tracksFile.exists()) {
-			tracks.putAll(mapper.readValue(tracksFile, TracksIndex.class).getTracks());
+			mapper.readValue(tracksFile, TracksIndex.class).getTracks().forEach(t -> tracks.put(t.getId(), t));
 		}
 
 		for (File file : getWorkingDir().listFiles((f, s) -> s
@@ -243,7 +243,7 @@ public class ConferenceData {
 	public void save(boolean force) {
 		String prefix = edition.getSistedesHandle().split("/")[0];
 		saveMetadata(edition, force);
-		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)), force);
+		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks.values()) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)), force);
 		if (preliminaries.isEmpty()) {
 			saveMetadata(Preliminaries.createTemplate(prefix, acronym, year), true);
 		} else {
