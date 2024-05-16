@@ -87,12 +87,12 @@ Commands:
   publish             Publishes the specified edition in the Sistedes Digital
                         Library. Published elements will be recorded locally to
                         avoid recreating them.
-  register-handles    Registers the Sistedes Handles such that they point to
-                        the Digital Library internal Handles.
-  dump-handles-batch  Dumps a set of Handle commands that can be run as a batch
-                        file to (optionally delete) and create all the Handles
-                        in the specified edition.
   list                Generates different listings of the conference data.
+  register-handles    (DEPRECATED) Registers the Sistedes Handles such that
+                        they point to the Digital Library internal Handles.
+  dump-handles-batch  (DEPRECATED) Dumps a set of Handle commands that can be
+                        run as a batch file to (optionally delete) and create
+                        all the Handles in the specified edition.
 ```
 
 Next, we describe the CLI options for each subcommand.
@@ -181,39 +181,6 @@ elements will be recorded locally to avoid recreating them.
   -u, --uri=URI             URI of the root endpoint of the DSpace API.
 ```
 
-### Register Handles (`register-handles`)
-
-Registers the Handles of the newly published documents in the Sistedes Handle server one at a time. This may take some time.
-
-```
-Usage: java -jar <this-file.jar> register-handles -f=FILE -k=FILE [-p=PASSWORD]
-       -P=PREFIX
-Registers the Sistedes Handles such that they point to the Digital Library
-internal Handles.
-  -f, --edition-file=FILE   JSON file including the conference edition metadata.
-  -k, --key-file=FILE       File with the secure key to authenticate in the
-                              Handle system.
-  -p, --password=PASSWORD   Password to unlock the key file.
-  -P, --prefix=PREFIX       Handle prefix.
-  ```
-
-### Dump Handle commands in a batch file (`dump-handles-batch`)
-
-Dump a batch text file with all the commands to (optionally delete) and create the Handles. This batch file can be later used in `hdl-admintool` to update all the Handles at the same time.
-
-```
-Usage: java -jar <this-file.jar> dump-handles-batch [-d] -f=FILE [-o=FILE]
-       -P=PREFIX
-Dumps a set of Handle commands that can be run as a batch file to (optionally
-delete) and create all the Handles in the specified edition.
-  -d, --delete              Also issue an initial DELETE command in order to
-                              CREATE the Handles from scratch.
-  -f, --edition-file=FILE   JSON file including the conference edition metadata.
-  -o, --output=FILE         If specified, the Handle commands will be saved in
-                              FILE rather than shown in stdout.
-  -P, --prefix=PREFIX       Handle prefix.
-```
-
 ### Produce different listings (`list`)
 
 Produce some listings that may be useful to detect inconsistencies and errors in the metadata files. If multiple listings are specified, they will be shown in a rown.
@@ -230,6 +197,44 @@ Generates different listings of the conference data.
                               name in his/her signature.
   -t, --paper-titles        List all the titles of the papers.
   ```
+
+### DEPRECATED: ~~Register Handles (`register-handles`)~~
+
+**No longer needed, since Handle registration can be directly done in DSpace as a Curation Task.**
+
+Registers the Handles of the newly published documents in the Sistedes Handle server one at a time. This may take some time.
+
+```
+Usage: java -jar <this-file.jar> register-handles -f=FILE -k=FILE [-p=PASSWORD]
+       -P=PREFIX
+Registers the Sistedes Handles such that they point to the Digital Library
+internal Handles.
+  -f, --edition-file=FILE   JSON file including the conference edition metadata.
+  -k, --key-file=FILE       File with the secure key to authenticate in the
+                              Handle system.
+  -p, --password=PASSWORD   Password to unlock the key file.
+  -P, --prefix=PREFIX       Handle prefix.
+  ```
+
+### DEPRECATED: ~~Dump Handle commands in a batch file (`dump-handles-batch`)~~
+
+**No longer needed, since Handle registration can be directly done in DSpace as a Curation Task.**
+
+Dump a batch text file with all the commands to (optionally delete) and create the Handles. This batch file can be later used in `hdl-admintool` to update all the Handles at the same time.
+
+```
+Usage: java -jar <this-file.jar> dump-handles-batch [-d] -f=FILE [-o=FILE]
+       -P=PREFIX
+Dumps a set of Handle commands that can be run as a batch file to (optionally
+delete) and create all the Handles in the specified edition.
+  -d, --delete              Also issue an initial DELETE command in order to
+                              CREATE the Handles from scratch.
+  -f, --edition-file=FILE   JSON file including the conference edition metadata.
+  -o, --output=FILE         If specified, the Handle commands will be saved in
+                              FILE rather than shown in stdout.
+  -P, --prefix=PREFIX       Handle prefix.
+```
+
 
 ## License
 

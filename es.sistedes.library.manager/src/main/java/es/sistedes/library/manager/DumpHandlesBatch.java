@@ -32,7 +32,7 @@ import picocli.CommandLine.Spec;
 
 // @formatter:off
 @Command(name = "dump-handles-batch", 
-		description = "Dumps a set of Handle commands that can be run as a batch file to (optionally delete) and create all the Handles in the specified edition.")
+		description = "(DEPRECATED) Dumps a set of Handle commands that can be run as a batch file to (optionally delete) and create all the Handles in the specified edition.")
 				
 // @formatter:on
 class DumpHandlesBatch implements Callable<Integer> {

@@ -49,7 +49,7 @@ import picocli.CommandLine.Spec;
 
 // @formatter:off
 @Command(name = "register-handles", 
-		description = "Registers the Sistedes Handles such that they point to the Digital Library internal Handles.")
+		description = "(DEPRECATED) Registers the Sistedes Handles such that they point to the Digital Library internal Handles.")
 				
 // @formatter:on
 class RegisterHandlesCommand implements Callable<Integer> {

@@ -39,7 +39,7 @@ IF "%1"=="dump-handles-batch" GOTO DUMP_HANDLES_BATCH
 IF "%1"=="validate" GOTO VALIDATE
 
 ECHO ERROR: Must provide exactly one of the following subcommands:
-ECHO init, sync-authors, publish, register-handles, dump-handles-batch, validate
+ECHO init, sync-authors, publish, validate
 
 GOTO END
 
@@ -60,20 +60,6 @@ GOTO END
 
 :PUBLISH
 SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-GOTO END
-
-:REGISTER_HANDLES
-SET COMMON_OPTS=register-handles -x %HANDLE_PREFIX% -k %HANDLE_KEY%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-GOTO END
-
-:DUMP_HANDLES_BATCH
-SET COMMON_OPTS=dump-handles-batch -x %HANDLE_PREFIX% -d
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
