@@ -87,6 +87,9 @@ public class Metadata {
 	@JsonProperty("person.familyName")
 	protected List<MetadataEntry> personFamilyNames = new ArrayList<>();
 	
+	@JsonProperty("person.identifier.orcid")
+	protected List<MetadataEntry> personOrcid = new ArrayList<>();
+	
 	@JsonProperty("person.name.variant")
 	protected List<MetadataEntry> personNameVariants = new ArrayList<>();
 	
@@ -336,6 +339,17 @@ public class Metadata {
 		if (StringUtils.isBlank(familyName)) return;
 		this.personFamilyNames.clear();
 		this.personFamilyNames.add(new MetadataEntry(familyName));
+	}
+	
+	public String getPersonOrcid() {
+		return personOrcid.stream().findFirst().map(e ->  e.getValue()).orElse(null);
+	}
+	
+	@JsonIgnore
+	public void setPersonOrcid(String orcid) {
+		if (StringUtils.isBlank(orcid)) return;
+		this.personOrcid.clear();
+		this.personOrcid.add(new MetadataEntry(orcid));
 	}
 	
 	public List<String> getPersonNameVariants() {

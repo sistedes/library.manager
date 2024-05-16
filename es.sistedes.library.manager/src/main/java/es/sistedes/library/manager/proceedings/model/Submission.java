@@ -11,7 +11,6 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,39 +24,18 @@ import org.apache.commons.text.WordUtils;
 import es.sistedes.library.manager.dspace.model.DSItem;
 
 public class Submission extends AbstractProceedingsDocument {
+	
+	protected Map<String, String> formFields;
 
 	public enum Type {
-		JISBD_FULL("completo", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		JISBD_RELEVANT("relevante", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
-		JISBD_SHORT("corto", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		JISBD_TOOL("herramienta", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		JCIS_PUBLISHED("Published", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
-		JCIS_LONG("Long papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		JCIS_SHORT("Short papers", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		PROLE_ORIGINAL("1", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		PROLE_TUTORIAL("2", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		PROLE_TOOL("3", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		PROLE_PROGRESS("4", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER),
-		PROLE_RELEVANT("5", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
-		PRELIMINARES("preliminares", es.sistedes.library.manager.dspace.model.DSItem.Type.PRELIMINARS), 
-		GENERIC_ABSTRACT("resumen", es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
-		GENERIC_PAPER("artículo", es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER);
-		
-		private String submissionTypeName;
+		PRELIMINARS(es.sistedes.library.manager.dspace.model.DSItem.Type.PRELIMINARS),
+		ABSTRACT(es.sistedes.library.manager.dspace.model.DSItem.Type.ABSTRACT),
+		PAPER(es.sistedes.library.manager.dspace.model.DSItem.Type.PAPER);
+
 		private DSItem.Type publicationType;
 		
-		Type(String submissionType, DSItem.Type publicationType) {
-			this.submissionTypeName = submissionType;
+		Type(DSItem.Type publicationType) {
 			this.publicationType = publicationType;
-		}
-		
-		public static Type from(String submissionTypeName) {
-			for (Type type : values()) {
-				if (type.submissionTypeName.equals(submissionTypeName)) {
-					return type;
-				}
-			}
-			throw new IllegalArgumentException(MessageFormat.format("No enum constant value ''{0}'' in {1}", submissionTypeName, Type.class.getCanonicalName()));
 		}
 		
 		public DSItem.Type getPublicationType() {
@@ -65,6 +43,20 @@ public class Submission extends AbstractProceedingsDocument {
 		}
 	}
 	
+	/**
+	 * @return the formFields
+	 */
+	public Map<String, String> getFormFields() {
+		return formFields;
+	}
+
+	/**
+	 * @param formFields the formFields to set
+	 */
+	public void setFormFields(Map<String, String> formFields) {
+		this.formFields = formFields;
+	}
+
 	/**
 	 * Extracts a {@link List} of keywords from a new-line-separated list of
 	 * keywords in a single {@link String}. Additionally, the keywords are

@@ -17,7 +17,7 @@ import es.sistedes.library.manager.proceedings.model.Submission.Type;
 public class Preliminaries extends AbstractProceedingsDocument {
 	
 	public Preliminaries() {
-		setType(Type.PRELIMINARES);
+		setType(Type.PRELIMINARS);
 	}
 
 	/**

@@ -11,16 +11,24 @@
 
 package es.sistedes.library.manager;
 
+import java.awt.Toolkit;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import es.sistedes.library.manager.proceedings.model.EasyChairImporter;
+import es.sistedes.library.manager.proceedings.model.Submission;
+import es.sistedes.library.manager.proceedings.model.Submission.Type;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -87,6 +95,10 @@ class InitializeCommand implements Callable<Integer> {
 		logger.info(MessageFormat.format("Importing EasyChair data from ''{0}''", xslxFile));
 		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, prefix, acronym, year, pattern, force).getData();
 		
+		for (Submission submission : conferenceData.getSubmissions().values()) {
+			setSubmissionType(submission);
+		}
+		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
 		conferenceData.save(force);
 
@@ -95,4 +107,40 @@ class InitializeCommand implements Callable<Integer> {
 	}
 
 
+	private void setSubmissionType(Submission submission) throws IOException {
+		File submissionFile = new File(inputDir, EasyChairImporter.getSourceSubmissionFileName(submission, acronym, year, pattern));
+		PDDocument document = PDDocument.load(submissionFile);
+		int pages = document.getNumberOfPages();
+		logger.info(MessageFormat.format("Submission ''{0}'' has the following custom fields: {1}", submissionFile, Arrays.asList(submission.getFormFields()).toString()));
+		if (pages == 1) {
+			submission.setType(Type.ABSTRACT);
+		} else if (document.getNumberOfPages() < 4) {
+			System.out.print(MessageFormat.format("Submission ''{0}'' has ''{1}'' pages. Is it an ABSTRACT (A) or a PAPER (P)? ", submissionFile, pages));
+			Toolkit.getDefaultToolkit().beep();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			Type type = null;
+			try {
+				do {
+					System.out.print("[A/P]: ");
+					switch (reader.readLine()) {
+					case "A":
+					case "a":
+						type = Type.ABSTRACT;
+						break;
+					case "P":
+					case "p":
+						type = Type.PAPER;
+						break;
+					}
+				} while (type == null);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			submission.setType(Type.ABSTRACT);
+		} else {
+			submission.setType(Type.PAPER);
+		}
+		logger.info(
+				MessageFormat.format("Submission ''{0}'' has ''{1}'' page(s) and has been marked as {2}", submissionFile, pages, submission.getType()));
+	}
 }

@@ -54,7 +54,7 @@ import picocli.CommandLine.Spec;
 // @formatter:on
 class SyncAuthorsCommand implements Callable<Integer> {
 
-	private static final Double NAME_SIMILARITY_THRESHOLD_WHEN_MAIL_MATCHES = 50.0d;
+	private static final Double NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES = 50.0d;
 	private static final Double NAME_SIMILARITY_THRESHOLD_WHEN_NAME_MATCHES = 90.0d;
 
 	private static final Logger logger = LoggerFactory.getLogger(SyncAuthorsCommand.class);
@@ -163,7 +163,6 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						// was added after the 2023 proceedings were produced because some
 						// name variants were not saved properly
 						dsAuthor.addNameVariant(signature.getFullName());
-						
 					}
 					// @formatter:on
 					// If all existing affiliations are different (90% or less) to the one in the signature, add it to the list
@@ -184,6 +183,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 							&& !dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
 						dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
 					}
+					// Add the ORCID if it doesn't exist yet
+					if (signature.getOrcid() != null && StringUtils.isBlank(dsAuthor.getOrcid())) {
+						dsAuthor.setOrcid(signature.getOrcid());
+					}
 				}
 				dsAuthor.save();
 				logger.info(MessageFormat.format("Updated Author for ''{0}''", author));
@@ -194,8 +197,11 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	private Optional<DSAuthor> findAuthor(Author author) {
 		Optional<DSAuthor> result = null;
 		for (Signature signature : author.getSignatures()) {
-			// First try to search by e-mail
-			result = searchAuthorByEmail(signature);
+			// First, try to search by ORCID
+			result = searchAuthorByOrcid(signature);
+			// Second, try to search by e-mail
+			if (!result.isPresent())
+				result = searchAuthorByEmail(signature);
 			// Next, if not find, try by full name
 			if (!result.isPresent())
 				result = searchAuthorByName(signature);
@@ -206,10 +212,49 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			else
 				break;
 		}
-		;
 		return result;
 	}
 
+	private Optional<DSAuthor> searchAuthorByOrcid(Signature signature) {
+		Optional<DSAuthor> result = dsRoot.searchAuthor(signature.getOrcid());
+		if (result.isPresent()) {
+			DSAuthor dsAuthor = result.get();
+			if (StringUtils.equals(dsAuthor.getOrcid(), signature.getOrcid())) {
+				// @formatter:off
+				Double maxSimilarity = getMaxSignatureNameSimilarity(signature, dsAuthor);
+				if (maxSimilarity > NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES) {
+					logger.debug(MessageFormat.format(
+							"Exact match found:\n"
+									+ " - Searched signature: {0}\n"
+									+ " - Found author:    {1}", 
+									signature, dsAuthor));
+					return Optional.of(dsAuthor);
+				} else {
+					String message = MessageFormat.format(
+							"ORCID match found, but name similarity ({0}%) is below the threshold ({1}%):\n"
+									+ " - Searched signature: {2}\n"
+									+ " - Found author:       {3}", 
+									maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES, signature, dsAuthor);
+					if (interactive) {
+						System.out.println(message);
+						if (readConfirmation("Is it a match?")) {
+							logger.info(MessageFormat.format(
+									"Approximate match found with similarity ({0}%) below the threshold ({1}%), but manually overriden:\n"
+											+ " - Searched signature: {2}\n"
+											+ " - Found author:       {3}", 
+											maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES, signature, dsAuthor));
+							return Optional.of(dsAuthor);
+						}
+					} else {
+						logger.warn(message);
+					}
+				}
+				// @formatter:on
+			}
+		}
+		return Optional.empty();
+	}
+	
 	private Optional<DSAuthor> searchAuthorByEmail(Signature signature) {
 		Optional<DSAuthor> result = dsRoot.searchAuthor(signature.getEmail());
 		if (result.isPresent()) {
@@ -217,7 +262,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			if (dsAuthor.getEmails().contains(signature.getEmail().toLowerCase())) {
 				// @formatter:off
 				Double maxSimilarity = getMaxSignatureNameSimilarity(signature, dsAuthor);
-				if (maxSimilarity > NAME_SIMILARITY_THRESHOLD_WHEN_MAIL_MATCHES) {
+				if (maxSimilarity > NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES) {
 					logger.debug(MessageFormat.format(
 							"Exact match found:\n"
 									+ " - Searched signature: {0}\n"
@@ -229,7 +274,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 							"E-mail match found, but name similarity ({0}%) is below the threshold ({1}%):\n"
 									+ " - Searched signature: {2}\n"
 									+ " - Found author:       {3}", 
-									maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_MAIL_MATCHES, signature, dsAuthor);
+									maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES, signature, dsAuthor);
 					if (interactive) {
 						System.out.println(message);
 						if (readConfirmation("Is it a match?")) {
@@ -237,7 +282,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 									"Approximate match found with similarity ({0}%) below the threshold ({1}%), but manually overriden:\n"
 											+ " - Searched signature: {2}\n"
 											+ " - Found author:       {3}", 
-											maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_MAIL_MATCHES, signature, dsAuthor));
+											maxSimilarity, NAME_SIMILARITY_THRESHOLD_WHEN_ID_MATCHES, signature, dsAuthor));
 							return Optional.of(dsAuthor);
 						}
 					} else {

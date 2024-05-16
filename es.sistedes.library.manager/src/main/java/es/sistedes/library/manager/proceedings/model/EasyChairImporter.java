@@ -7,6 +7,8 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListValuedMap;
@@ -23,7 +25,6 @@ import es.sistedes.library.manager.HandleGenerator;
 import es.sistedes.library.manager.IConferenceDataImporter;
 import es.sistedes.library.manager.excel.NoSuchSheetException;
 import es.sistedes.library.manager.excel.SheetReader;
-import es.sistedes.library.manager.proceedings.model.Submission.Type;
 
 public class EasyChairImporter implements IConferenceDataImporter {
 
@@ -109,9 +110,18 @@ public class EasyChairImporter implements IConferenceDataImporter {
 			rowReader.get("email", String.class).ifPresent(signature::setEmail);
 			rowReader.get("country", String.class).ifPresent(signature::setCountry);
 			rowReader.get("affiliation", String.class).ifPresent(signature::setAffiliation);
-			rowReader.get("Web page", String.class).ifPresent(signature::setWeb);
 			rowReader.get("submission #", Double.class).map(Double::intValue).ifPresent(id -> submissionsSignatures.put(id, signature));
 			rowReader.get("person #", Double.class).map(Double::intValue).ifPresent(id -> signature.setAuthor(id));
+			rowReader.get("Web page", String.class).ifPresent(wp -> {
+				if (wp.contains("orcid.org")) {
+					Matcher matcher = Pattern.compile("https?://orcid\\.org/(?<orcid>[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})").matcher(wp);
+					if (matcher.matches()) {
+						signature.setOrcid(matcher.group("orcid"));
+					}
+				} else {
+					signature.setWeb(wp);
+				}
+			});
 
 		});
 		return submissionsSignatures;
@@ -128,26 +138,13 @@ public class EasyChairImporter implements IConferenceDataImporter {
 		new SheetReader(sheet).forEach(rowReader -> {
 			Submission submission = new Submission();
 			rowReader.get("decision", String.class).ifPresent(decision -> {
-				if (decision.equals("accept")) {
+				if (decision.contains("accept")) { // we also include "conditionally accept"
 					rowReader.get("#", Double.class).map(Double::intValue).ifPresent(submission::setId);
 					rowReader.get("track #", Double.class).map(Double::intValue).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
 					rowReader.get("title", String.class).ifPresent(submission::setTitle);
 					rowReader.get("keywords", String.class).map(Submission::extractKeywordsList)
 							.ifPresent(list -> list.stream().forEach(kw -> submission.getKeywords().add(kw)));
-					// FIXME: IMPORTANT! The field type specifying the type of submission will
-					// probably change over the years. Thus, these lines and
-					// "es.sistedes.library.manager.proceedings.model.Submission.Type"
-					// may need to be adapted in the future.
-					// JISBD
-					rowReader.get("form fields", String.class).map(Submission::extractFormFields).map(map -> map.get("tipo")).map(Type::from)
-							.ifPresent(submission::setType);
-					// PROLE
-					rowReader.get("form fields", String.class).map(Submission::extractFormFields).map(map -> map.get("Categoría")).map(Type::from)
-							.ifPresent(submission::setType);
-					// JCIS
-					rowReader.get("form fields", String.class).map(Submission::extractFormFields).map(map -> map.get("Category.")).map(Type::from)
-							.ifPresent(submission::setType);
-
+					rowReader.get("form fields", String.class).map(Submission::extractFormFields).ifPresent(submission::setFormFields);
 					rowReader.get("abstract", String.class).ifPresent(submission::setAbstract);
 					submission.getSignatures().addAll(submissionsSignatures.get(submission.getId()));
 					rowReader.get("authors", String.class).ifPresent(str -> {
@@ -179,8 +176,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * @param force
 	 */
 	private void importSubmissionFile(Submission submission, File sourceDir, String pattern, boolean force) {
-		String filename = StringUtils.replaceEachRepeatedly(pattern, new String[] { "{acronym}", "{year}", "{id}" }, new String[] {
-				conferenceData.getEdition().getAcronym(), String.valueOf(conferenceData.getEdition().getYear()), String.valueOf(submission.getId()) });
+		String filename = getSourceSubmissionFileName(submission, conferenceData.getEdition().getAcronym(), conferenceData.getEdition().getYear(), pattern);
 		File sourceDoc = sourceDir.toPath().resolve(filename).toFile();
 		File targetDoc = new File(conferenceData.getWorkingDir(), getDataFilename(submission).orElseThrow());
 		if (!targetDoc.exists() || force) {
@@ -243,4 +239,17 @@ public class EasyChairImporter implements IConferenceDataImporter {
 		return conferenceData;
 	}
 
+	/**
+	 * Returns the original file name of the {@link Submission}
+	 * 
+	 * @param submission
+	 * @param acronym
+	 * @param year
+	 * @param pattern
+	 * @return the original file name of the {@link Submission}
+	 */
+	public static String getSourceSubmissionFileName(Submission submission, String acronym, int year, String pattern) {
+		return StringUtils.replaceEachRepeatedly(pattern, new String[] { "{acronym}", "{year}", "{id}" },
+				new String[] { acronym, String.valueOf(year), String.valueOf(submission.getId()) });
+	}
 }

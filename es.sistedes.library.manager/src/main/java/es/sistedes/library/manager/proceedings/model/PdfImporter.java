@@ -183,9 +183,9 @@ public class PdfImporter implements IConferenceDataImporter {
 			submission.setFilename(edition.getSubmissionsDocsFilenamePattern().replace("{acronym}", edition.getAcronym())
 					.replace("{year}", String.valueOf(edition.getYear())).replace("{id}", submissionId));
 			if (end - start <= 1) {
-				submission.setType(Type.GENERIC_ABSTRACT);
+				submission.setType(Type.ABSTRACT);
 			} else {
-				submission.setType(Type.GENERIC_PAPER);
+				submission.setType(Type.PAPER);
 			}
 			Splitter splitter = createSplitter(start, end);
 			File submissionFile = new File(conferenceData.getWorkingDir(), submission.getFilename());

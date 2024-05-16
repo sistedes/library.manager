@@ -45,6 +45,14 @@ public class DSAuthor extends DSItem {
 	public String getFullName() {
 		return StringUtils.defaultString(getFamilyName()) + ", " + StringUtils.defaultString(getGivenName());
 	}
+	
+	public String getOrcid() {
+		return metadata.getPersonOrcid();
+	}
+
+	public void setOrcid(String orcid) {
+		metadata.setPersonOrcid(orcid);
+	}
 
 	public List<String> getEmails() {
 		return metadata.getPersonEmails().stream().map(e -> e.toLowerCase()).collect(Collectors.toList());
@@ -120,6 +128,7 @@ public class DSAuthor extends DSItem {
 		result.setAffiliations(author.getSignatures().stream().map(s -> s.getFullAffiliation().trim()).collect(Collectors.toSet()).stream().toList());
 		result.setEmails(author.getSignatures().stream().map(s -> s.getEmail().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
 		result.setWebs(author.getSignatures().stream().filter(s -> s.getWeb() != null).map(s -> s.getWeb().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
+		result.setOrcid(author.getOrcid());
 		return dsRoot.getItemsEndpoint().createAuthor(result, authorsCollection);
 	}
 

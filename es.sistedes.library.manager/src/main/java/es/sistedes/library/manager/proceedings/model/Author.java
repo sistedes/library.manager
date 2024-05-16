@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class Author {
 
 	protected Integer id;
+	
+	protected String orcid;
 
 	protected Set<Signature> signatures = new HashSet<>();
 
@@ -35,6 +37,27 @@ public class Author {
 		this.id = id;
 	}
 
+	/**
+	 * @return the orcid
+	 */
+	public String getOrcid() {
+		Set<String> orcids = this.signatures.stream().map(s -> s.getOrcid()).filter(orcid -> orcid != null).collect(Collectors.toSet());
+		if (orcids.size() == 0) {
+			return null;
+		} if (orcids.size() == 1) {
+			return orcids.stream().findAny().get();
+		} else {
+			throw new RuntimeException("Authors information is inconsistent! More than one Sistedesd UUID has been associated to author with id " + id);
+		}
+	}
+
+	/**
+	 * @param orcid the orcid to set
+	 */
+	public void setOrcid(String orcid) {
+		this.signatures.forEach(s -> s.setOrcid(orcid));
+	}	
+	
 	/**
 	 * @return the sistedesUuid
 	 */

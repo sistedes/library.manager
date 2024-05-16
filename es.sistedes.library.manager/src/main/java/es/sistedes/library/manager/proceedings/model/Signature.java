@@ -25,6 +25,8 @@ public class Signature {
 
 	protected String sistedesUuid;
 	
+	protected String orcid;
+	
 	protected String givenName;
 
 	protected String familyName;
@@ -70,6 +72,20 @@ public class Signature {
 		this.sistedesUuid = sistedesUuid;
 	}
 	
+	/**
+	 * @return the orcid
+	 */
+	public String getOrcid() {
+		return orcid;
+	}
+
+	/**
+	 * @param orcid the orcid to set
+	 */
+	public void setOrcid(String orcid) {
+		this.orcid = orcid;
+	}
+
 	/**
 	 * @return the givenName
 	 */
