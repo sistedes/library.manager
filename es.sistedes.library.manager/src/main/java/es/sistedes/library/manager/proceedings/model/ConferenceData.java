@@ -224,7 +224,11 @@ public class ConferenceData {
 
 		File tracksFile = new File(getWorkingDir(), edition.getTracksFilenamePattern().replace("{acronym}", acronym).replace("{year}", String.valueOf(year)));
 		if (tracksFile.exists()) {
-			mapper.readValue(tracksFile, TracksIndex.class).getTracks().forEach(t -> tracks.put(t.getId(), t));
+			TracksIndex tracksIndex = mapper.readValue(tracksFile, TracksIndex.class);
+			tracksIndex.getTracks().forEach(t -> tracks.put(t.getId(), t));
+			if (tracksIndex.getTracks().size() != tracks.size()) {
+				throw new RuntimeException("Inconsistent number of Tracks in Tracks Index! Please check that Track identifiers are unique!");
+			}
 		}
 
 		for (File file : getWorkingDir().listFiles((f, s) -> s
