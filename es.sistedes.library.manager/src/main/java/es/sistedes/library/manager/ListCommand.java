@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.proceedings.model.ConferenceData;
@@ -88,7 +89,7 @@ class ListCommand implements Callable<Integer> {
 	public static void listAuthorsWithDifferentEmails(ConferenceData conferenceData) {
 		conferenceData.getAuthors().values().stream().forEach(author -> {
 			ListValuedMap<String, Integer> emails = new ArrayListValuedHashMap<>();
-			author.getSignatures().stream().forEach(signature -> emails.putAll(signature.getEmail().toLowerCase(), signature.getSubmissions()));
+			author.getSignatures().stream().forEach(signature -> emails.putAll(StringUtils.toRootLowerCase(signature.getEmail()), signature.getSubmissions()));
 			if (emails.asMap().size() > 1) {
 				System.out.println(MessageFormat.format("Author ''{0}'' has {1} different e-mails: {2}", author.getId(), emails.asMap().size(),
 						emails.asMap().entrySet().stream().map(e -> e.getKey()).collect(Collectors.joining("; "))));
