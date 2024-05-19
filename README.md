@@ -8,8 +8,6 @@ The process to produce a new set of proceedings is typically as follows:
 
 0. **Import the conference data** from EasyChair using the `init` command. A set of JSON metadata files will be created with the conference data.
 
-    **IMPORTANT:** The EasyChair tags that determine the type os submission (full paper, short paper, relevant paper, tool paper, tutorial, etc.) vary between Sistedes conferences (JISBD, JCIS, and PROLE) and year. Thus, the code that automatically detects the type of submission from the dump file must be checked and possibly changed every year. Look for the `FIXME` comments in the source code.
-
 1. **Manually adjust** the generated JSON files to complete the information required by the proceedings. Some actions that must be taken are:
 
     * Adjust the edition information in the edition file.
@@ -22,13 +20,7 @@ The process to produce a new set of proceedings is typically as follows:
 
 2. **Synchronize the authors' list** with the Sistedes Digital Library using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too.
 
-3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a fez minutes. All document will be public immediately.
-
-4. **Register the Handles** of the newly published documents. This can be done in two ways:
-
-    * Using the `register-handles` command. This will automatically create or update the Handles in the specified Handle server one at a time. This process can take several minutes.
-
-    * Using the `dump-handles-batch` command. This will produce a batch text file with all the commands to (optionally delete) and create the Handles. This batch file can be later used in `hdl-admintool` to update all the Handles at the same time. This procedure is faster at the cost of needing an external tool.
+3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a few minutes. All documents will be public immediately.
 
 ## Requirements
 
@@ -57,11 +49,11 @@ It is possible to run the aforementioned commands in batch mode for all the Sist
 
 2. Adjust all the environment variables to the conferences and editions to be published.
 
-3. Run `execute.bat` using any of the following subcommands: `init`, `sync-authors`, `publish`, `register-handles`, `dump-handles-batch`, `validate`.
+3. Run `execute.bat` using any of the following subcommands: `init`, `sync-authors`, `publish`, `validate`.
 
 ## Command line interface
 
-All the above commands can be executed from a single tool: the `library.manager-<VERSION>.jar`.
+All the different commands can be executed from a single tool: the `library.manager-<VERSION>.jar`.
 
 Below you can find the main usage options:
 
