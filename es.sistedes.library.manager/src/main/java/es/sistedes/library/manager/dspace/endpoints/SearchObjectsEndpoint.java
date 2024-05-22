@@ -92,8 +92,7 @@ public class SearchObjectsEndpoint<T> extends AbstractHateoas {
 		parameters2.add("sort", "score,DESC");
 		URI uri = getSelfUri();
 		// @formatter:off
-		return //WebClient.builder().filter(CsrfClientExchangeFilterFunction.INSTANCE).baseUrl(uri.resolve("/").toString()).build().get()
-				DSpaceConnectionManager.buildClient().get()
+		return DSpaceConnectionManager.buildClient().get()
 				.uri(uriBuilder -> uriBuilder
 						.scheme(uri.getScheme())
 						.host(uri.getHost())
