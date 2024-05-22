@@ -125,9 +125,12 @@ public class DSAuthor extends DSItem {
 				result.addNameVariant(signature.getFullName());
 			}
 		}
-		result.setAffiliations(author.getSignatures().stream().map(s -> s.getFullAffiliation().trim()).collect(Collectors.toSet()).stream().toList());
-		result.setEmails(author.getSignatures().stream().map(s -> s.getEmail().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
-		result.setWebs(author.getSignatures().stream().filter(s -> s.getWeb() != null).map(s -> s.getWeb().toLowerCase().trim()).collect(Collectors.toSet()).stream().toList());
+		result.setAffiliations(author.getSignatures().stream().filter(s -> s.getFullAffiliation() != null).map(s -> s.getFullAffiliation().trim())
+				.collect(Collectors.toSet()).stream().toList());
+		result.setEmails(author.getSignatures().stream().filter(s -> s.getEmail() != null).map(s -> s.getEmail().toLowerCase().trim())
+				.collect(Collectors.toSet()).stream().toList());
+		result.setWebs(author.getSignatures().stream().filter(s -> s.getWeb() != null).map(s -> s.getWeb().toLowerCase().trim())
+				.collect(Collectors.toSet()).stream().toList());
 		result.setOrcid(author.getOrcid());
 		return dsRoot.getItemsEndpoint().createAuthor(result, authorsCollection);
 	}
