@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import es.sistedes.library.manager.DSpaceConnectionManager;
 import es.sistedes.library.manager.dspace.endpoints.AuthnEndpoint;
-import es.sistedes.library.manager.dspace.endpoints.AuthzEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.BundlesEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.CollectionsEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.CommunitiesEndpoint;
@@ -25,6 +24,7 @@ import es.sistedes.library.manager.dspace.endpoints.DiscoverEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.ItemsEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.RelationshipTypesEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.RelationshipsEndpoint;
+import es.sistedes.library.manager.dspace.endpoints.ResourcePoliciesEndpoint;
 
 public class DSRoot extends AbstractHateoas {
 
@@ -36,8 +36,9 @@ public class DSRoot extends AbstractHateoas {
 		return DSpaceConnectionManager.buildClient().get().uri(getLinkUri("authn").get()).retrieve().bodyToMono(AuthnEndpoint.class).block();
 	}
 	
-	public AuthzEndpoint getAuthzEndpoint() {
-		return DSpaceConnectionManager.buildClient().get().uri(getLinkUri("authz").get()).retrieve().bodyToMono(AuthzEndpoint.class).block();
+	public ResourcePoliciesEndpoint getResourcePoliciesEndpoint() {
+		// The resourcepolicies endpoint cannot be GETted, thus, we create a dummy instance with the "self" link for convenience purposes
+		return new ResourcePoliciesEndpoint(getLinkUri("resourcepolicies").get());
 	}
 	
 	public DiscoverEndpoint getDiscoverEndpoint() {

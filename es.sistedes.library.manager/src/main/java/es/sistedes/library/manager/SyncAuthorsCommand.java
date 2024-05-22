@@ -168,9 +168,6 @@ class SyncAuthorsCommand implements Callable<Integer> {
 									StringUtils.stripAccents(dsAuthor.getFullName().toLowerCase()), 
 									StringUtils.stripAccents(signature.getFullName().toLowerCase()))
 								&& !dsAuthor.getNameVariants().contains(signature.getFullName())) {
-						// TODO: Check this function again in the future, this condition
-						// was added after the 2023 proceedings were produced because some
-						// name variants were not saved properly
 						updated = true;
 						dsAuthor.addNameVariant(signature.getFullName());
 					}
@@ -391,10 +388,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	
 
 	private void deleteReadResourcePolicies(String uuid) {
-		List<DSResourcePolicy> policies = dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
+		List<DSResourcePolicy> policies = dsRoot.getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
 		policies.stream().filter(p -> DSResourcePolicy.ACTION_READ.equals(p.getAction())).forEach(p -> {
 			Integer id = p.getId();
-			dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().deleteResourcePolicy(id);
+			dsRoot.getResourcePoliciesEndpoint().deleteResourcePolicy(id);
 		});
 	}
 }

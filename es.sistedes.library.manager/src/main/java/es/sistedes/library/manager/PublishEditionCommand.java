@@ -315,10 +315,10 @@ class PublishEditionCommand implements Callable<Integer> {
 	}
 
 	private void deleteReadResourcePolicies(String uuid) {
-		List<DSResourcePolicy> policies = dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
+		List<DSResourcePolicy> policies = dsRoot.getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
 		policies.stream().filter(p -> DSResourcePolicy.ACTION_READ.equals(p.getAction())).forEach(p -> {
 			Integer id = p.getId();
-			dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().deleteResourcePolicy(id);
+			dsRoot.getResourcePoliciesEndpoint().deleteResourcePolicy(id);
 		});
 	}
 
