@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import es.sistedes.library.manager.DSpaceConnectionManager;
 import es.sistedes.library.manager.dspace.endpoints.AuthnEndpoint;
+import es.sistedes.library.manager.dspace.endpoints.AuthzEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.BundlesEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.CollectionsEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.CommunitiesEndpoint;
@@ -33,6 +34,10 @@ public class DSRoot extends AbstractHateoas {
 
 	public AuthnEndpoint getAuthnEndpoint() {
 		return DSpaceConnectionManager.buildClient().get().uri(getLinkUri("authn").get()).retrieve().bodyToMono(AuthnEndpoint.class).block();
+	}
+	
+	public AuthzEndpoint getAuthzEndpoint() {
+		return DSpaceConnectionManager.buildClient().get().uri(getLinkUri("authz").get()).retrieve().bodyToMono(AuthzEndpoint.class).block();
 	}
 	
 	public DiscoverEndpoint getDiscoverEndpoint() {
