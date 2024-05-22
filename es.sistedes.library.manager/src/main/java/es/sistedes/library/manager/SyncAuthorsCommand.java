@@ -32,6 +32,7 @@ import com.simplenamematcher.SimpleNameMatcher;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
+import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.proceedings.model.Author;
 import es.sistedes.library.manager.proceedings.model.ConferenceData;
@@ -89,6 +90,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	"--password" }, paramLabel = "PASSWORD", required = true, description = "Password of the account in the Sistedes Digital Library.")
 	private String password;
 	
+	@Option(names = { "-a", "--admin-only" }, description = "Create new authors with administrator-only permissions (i.e., hidden to the general public).")
+	private boolean private_ = false;
+
 	private ConferenceData conferenceData;
 	private DSRoot dsRoot;
 
@@ -137,15 +141,20 @@ class SyncAuthorsCommand implements Callable<Integer> {
 				// No existing author has been found, we must create it
 				logger.debug(MessageFormat.format("Creating Author for ''{0}''...", author));
 				DSAuthor dsAuthor = DSAuthor.createAuthor(dsRoot, author);
+				if (private_) {
+					deleteReadResourcePolicies(dsAuthor.getUuid());
+				}
 				author.setSistedesUuid(dsAuthor.getUuid());
 				logger.info(MessageFormat.format("Created Author for ''{0}''", author));
 			} else {
-				// We must update an existing author
+				// We may update an existing author
+				boolean updated = false;
 				logger.debug(MessageFormat.format("Updating Author for ''{0}''...", author));
 				DSAuthor dsAuthor = dsAuthorOpt.get();
 				for (Signature signature : author.getSignatures()) {
 					// @formatter:off
 					if (DSAuthor.shouldUpdateName(dsAuthor.getFullName(), signature.getFullName())) {
+						updated = true;
 						// Set the current name as a variant
 						dsAuthor.addNameVariant(dsAuthor.getFullName());
 						// Update the name
@@ -162,6 +171,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						// TODO: Check this function again in the future, this condition
 						// was added after the 2023 proceedings were produced because some
 						// name variants were not saved properly
+						updated = true;
 						dsAuthor.addNameVariant(signature.getFullName());
 					}
 					// @formatter:on
@@ -172,24 +182,32 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						String affiliation2 = StringUtils.normalizeSpace(StringUtils.stripAccents(signature.getFullAffiliation()).replaceAll("\\p{Punct}", "")).toLowerCase();
 						return (SimpleNameMatcher.compareNamesSafe(affiliation1, affiliation2) <= 90);
 						})) {
+						updated = true;
 						dsAuthor.addAffiliation(signature.getFullAffiliation().trim());
 					}
 					// Add the e-mail if it doesn't exist yet
 					if (!dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
+						updated = true;
 						dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
 					}
 					// Add the web if it doesn't exist yet
 					if (signature.getWeb() != null 
 							&& !dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
+						updated = true;
 						dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
 					}
 					// Add the ORCID if it doesn't exist yet
 					if (signature.getOrcid() != null && StringUtils.isBlank(dsAuthor.getOrcid())) {
+						updated = true;
 						dsAuthor.setOrcid(signature.getOrcid());
 					}
 				}
-				dsAuthor.save();
-				logger.info(MessageFormat.format("Updated Author for ''{0}''", author));
+				if (updated) {
+					dsAuthor.save();
+					logger.info(MessageFormat.format("Updated Author for ''{0}''", author));
+				} else {
+					logger.info(MessageFormat.format("No updates are required for Author ''{0}''", author));
+				}
 			}
 		}
 	}
@@ -216,6 +234,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	}
 
 	private Optional<DSAuthor> searchAuthorByOrcid(Signature signature) {
+		if (StringUtils.isEmpty(signature.getOrcid())) {
+			return Optional.empty();
+		}
 		Optional<DSAuthor> result = dsRoot.searchAuthor(signature.getOrcid());
 		if (result.isPresent()) {
 			DSAuthor dsAuthor = result.get();
@@ -256,6 +277,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	}
 	
 	private Optional<DSAuthor> searchAuthorByEmail(Signature signature) {
+		if (StringUtils.isEmpty(signature.getEmail())) {
+			return Optional.empty();
+		}
 		Optional<DSAuthor> result = dsRoot.searchAuthor(signature.getEmail());
 		if (result.isPresent()) {
 			DSAuthor dsAuthor = result.get();
@@ -296,6 +320,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	}
 
 	private Optional<DSAuthor> searchAuthorByName(Signature signature) {
+		if (StringUtils.isEmpty(signature.getFullName())) {
+			return Optional.empty();
+		}
 		Optional<DSAuthor> result = dsRoot.searchAuthor(signature.getFullName());
 		if (result.isPresent()) {
 			DSAuthor dsAuthor = result.get();
@@ -360,5 +387,14 @@ class SyncAuthorsCommand implements Callable<Integer> {
 		Optional<Double> maxSimilarity = allAuthorNames.stream().map(variant -> SimpleNameMatcher.compareNamesSafe(signature.getFullName(), variant))
 				.max(Comparator.naturalOrder());
 		return maxSimilarity.orElse(0.0d);
+	}
+	
+
+	private void deleteReadResourcePolicies(String uuid) {
+		List<DSResourcePolicy> policies = dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
+		policies.stream().filter(p -> DSResourcePolicy.ACTION_READ.equals(p.getAction())).forEach(p -> {
+			Integer id = p.getId();
+			dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().deleteResourcePolicy(id);
+		});
 	}
 }
