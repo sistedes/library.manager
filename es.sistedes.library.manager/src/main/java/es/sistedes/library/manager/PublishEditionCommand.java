@@ -21,6 +21,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FilenameUtils;
@@ -41,6 +42,7 @@ import es.sistedes.library.manager.dspace.model.DSCollection;
 import es.sistedes.library.manager.dspace.model.DSCommunity;
 import es.sistedes.library.manager.dspace.model.DSItem;
 import es.sistedes.library.manager.dspace.model.DSPublication;
+import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.dspace.model.RelationshipType;
 import es.sistedes.library.manager.proceedings.model.AbstractProceedingsDocument;
@@ -87,6 +89,9 @@ class PublishEditionCommand implements Callable<Integer> {
 	@Option(names = { "-p", "--password" }, paramLabel = "PASSWORD", required = true, description = "Password of the account in the Sistedes Digital Library.")
 	private String password;
 
+	@Option(names = { "-a", "--admin-only" }, description = "Publish with administrator-only permissions (i.e., hidden to the general public).")
+	private boolean private_ = false;
+
 	private ConferenceData conferenceData;
 	private DSRoot dsRoot;
 
@@ -113,6 +118,11 @@ class PublishEditionCommand implements Callable<Integer> {
 			Edition edition = conferenceData.getEdition();
 			DSCommunity editionCommunity = getOrCreateEditionCommunity(conferenceCommunity, edition);
 			edition.setInternalHandle(editionCommunity.getHandle());
+			
+			// If private, delete all READ permissions
+			if (private_) {
+				deleteReadResourcePolicies(editionCommunity.getUuid());
+			}
 	
 			// Publish the preliminaries
 			publishPreliminaries(editionCommunity, edition);
@@ -130,6 +140,11 @@ class PublishEditionCommand implements Callable<Integer> {
 
 	private void publishPreliminaries(DSCommunity editionCommunity, Edition edition) {
 		DSCollection preliminariesCollection = getOrCreatePreliminariesCollection(editionCommunity, edition);
+		
+		// If private, delete all READ permissions
+		if (private_) {
+			deleteReadResourcePolicies(preliminariesCollection.getUuid());
+		}
 
 		// Start iterating over the preliminaries
 		for (Preliminaries prelim : conferenceData.getPreliminaries()) {
@@ -143,6 +158,11 @@ class PublishEditionCommand implements Callable<Integer> {
 				logger.info(MessageFormat.format("Created publication for preliminaries ''{0}'' with UUID ''{1}''", dsPublication.getName(),
 						dsPublication.getUuid()));
 				uploadPublicationBitstreams(prelim, dsPublication);
+				
+				// If private, delete all READ permissions
+				if (private_) {
+					deleteReadResourcePolicies(dsPublication.getUuid());
+				}
 			} else {
 				logger.info(MessageFormat.format("Publication for ''{0}'' already exists UUID ''{1}'', skipping...", prelim.getTitle(), prelim.getSistedesUuid()));
 			}
@@ -161,6 +181,11 @@ class PublishEditionCommand implements Callable<Integer> {
 			// Get (or create, if it does not exist) the collection which will hold the
 			// publications
 			DSCollection trackCollection = getOrCreateTrackCollection(editionCommunity, track);
+			
+			// If private, delete all READ permissions
+			if (private_) {
+				deleteReadResourcePolicies(trackCollection.getUuid());
+			}
 
 			// Start iterating over the submissions
 			for (int submissionId : track.getSubmissions()) {
@@ -175,6 +200,11 @@ class PublishEditionCommand implements Callable<Integer> {
 					logger.info(MessageFormat.format("Created publication for ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
 					createSubmissionAuthorships(submission, dsPublication);
 					uploadPublicationBitstreams(submission, dsPublication);
+
+					// If private, delete all READ permissions
+					if (private_) {
+						deleteReadResourcePolicies(dsPublication.getUuid());
+					}
 				} else {
 					logger.info(MessageFormat.format("Publication for ''{0}'' already exists UUID ''{1}'', skipping...", submission.getTitle(),
 							submission.getSistedesUuid()));
@@ -284,6 +314,14 @@ class PublishEditionCommand implements Callable<Integer> {
 		return conferenceCommunity;
 	}
 
+	private void deleteReadResourcePolicies(String uuid) {
+		List<DSResourcePolicy> policies = dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().getResourcePoliciesFor(uuid);
+		policies.stream().filter(p -> DSResourcePolicy.ACTION_READ.equals(p.getAction())).forEach(p -> {
+			Integer id = p.getId();
+			dsRoot.getAuthzEndpoint().getResourcePoliciesEndpoint().deleteResourcePolicy(id);
+		});
+	}
+
 	private static File createPdfFile(String title, File originalFile) {
 		File pdfFile = new File(FilenameUtils.removeExtension(originalFile.getAbsolutePath()) + ".pdf");
 		try {
@@ -310,8 +348,8 @@ class PublishEditionCommand implements Callable<Integer> {
 	}
 
 	/*
-	 * Utility methods to cache the relationships used when creating new editions of
-	 * a conference
+	 * Utility methods to cache the relationship types that are used when creating
+	 * new editions of a conference
 	 */
 	private RelationshipType isAuthorOfPaperRelationship;
 
