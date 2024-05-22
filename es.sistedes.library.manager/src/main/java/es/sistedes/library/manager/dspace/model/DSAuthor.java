@@ -155,7 +155,9 @@ public class DSAuthor extends DSItem {
 	}
 
 	public static boolean shouldUpdateName(String existingName, String newName) {
+		// Replace name if it is longer...
 		return newName.length() > existingName.length()
+				// ... or if the new name has more accents than the old
 				|| newName.replaceAll("[^áéíóúàèìòùäëïöüâêîôûãẽĩõũ]", "").length() > existingName.replaceAll("[^áéíóúàèìòùäëïöüâêîôûãẽĩõũ]", "").length();
 	}
 }
