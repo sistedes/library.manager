@@ -245,6 +245,8 @@ public class ConferenceData {
 	 * @param force
 	 */
 	public void save(boolean force) {
+		// Force load the authors map before saving, just in case it was not initialized yet
+		getAuthors();
 		String prefix = edition.getSistedesHandle().split("/")[0];
 		saveMetadata(edition, force);
 		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks.values()) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)), force);
