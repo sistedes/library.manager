@@ -52,14 +52,14 @@ CALL java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o
 GOTO END
 
 :SYNC_AUTHORS
-SET COMMON_OPTS=sync-authors -i -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%
+SET COMMON_OPTS=sync-authors -i -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
 GOTO END
 
 :PUBLISH
-SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%
+SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
