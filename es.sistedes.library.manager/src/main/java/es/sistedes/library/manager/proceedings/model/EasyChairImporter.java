@@ -103,7 +103,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	}
 
 	/**
-	 * Import tracks information from the 'Authors' {@link Sheet}
+	 * Import authors information from the 'Authors' {@link Sheet}
 	 * 
 	 * @param sheet
 	 * @return
