@@ -175,8 +175,8 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					// If all existing affiliations are different (90% or less) to the one in the signature, add it to the list
 					// Do the computation ignoring casing, accents, punctuation marks, and normalizing the spaces
 					if (dsAuthor.getAffiliations().stream().allMatch(aff -> { 
-						String affiliation1 = StringUtils.normalizeSpace(StringUtils.stripAccents(aff).replaceAll("\\p{Punct}", "")).toLowerCase();
-						String affiliation2 = StringUtils.normalizeSpace(StringUtils.stripAccents(signature.getFullAffiliation()).replaceAll("\\p{Punct}", "")).toLowerCase();
+						String affiliation1 = StringUtils.normalizeSpace(StringUtils.stripAccents(aff).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
+						String affiliation2 = StringUtils.normalizeSpace(StringUtils.stripAccents(signature.getFullAffiliation()).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
 						return (SimpleNameMatcher.compareNamesSafe(affiliation1, affiliation2) <= 90);
 						})) {
 						updated = true;
