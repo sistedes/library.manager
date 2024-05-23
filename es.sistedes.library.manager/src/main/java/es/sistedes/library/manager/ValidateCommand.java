@@ -53,6 +53,7 @@ class ValidateCommand implements Callable<Integer> {
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
 		boolean success = validateAuthorsHaveSistedesId(conferenceData);
+		success = validateAuthorsAreLatin(conferenceData) && success;
 		success = validateSubmissionsHaveType(conferenceData) && success;
 		success = validateProceedingsEltsHaveSistedesHandles(conferenceData) && success;
 		success = validateNotDuplicateHandles(conferenceData) && success;
@@ -65,6 +66,23 @@ class ValidateCommand implements Callable<Integer> {
 			submission.getSignatures().forEach(signature -> {
 				if (StringUtils.isBlank(conferenceData.getAuthors().get(signature.getAuthor()).getSistedesUuid())) {
 					logger.error(MessageFormat.format("Signature ''{0}'' of submission ''{1,number,#}'' does not refer to any Sistedes author",
+							signature.getFullName(), submission.getId()));
+					isValid.set(false);
+				}
+			});
+		});
+		return isValid.get();
+	}
+	
+
+	public static boolean validateAuthorsAreLatin(ConferenceData conferenceData) {
+		final AtomicBoolean isValid = new AtomicBoolean(true);
+		conferenceData.getSubmissions().values().stream().forEach(submission -> {
+			submission.getSignatures().forEach(signature -> {
+				// Names must be in the form "Surname, Name", be in the latin set, and can
+				// contain hyphens, dots, apostrophes, or spaces
+				if (!signature.getFullName().matches("^[\\p{IsLatin}\\-\\.' ]+, [\\p{IsLatin}\\-\\.' ]+$")) {
+					logger.error(MessageFormat.format("Signature ''{0}'' of submission ''{1,number,#}'' contains invalid characters",
 							signature.getFullName(), submission.getId()));
 					isValid.set(false);
 				}
