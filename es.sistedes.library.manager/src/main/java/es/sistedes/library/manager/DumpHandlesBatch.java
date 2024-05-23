@@ -62,12 +62,14 @@ class DumpHandlesBatch implements Callable<Integer> {
 
 	private ConferenceData conferenceData;
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
 
 		logger.info("Validating conference data...");
-		if (!ValidateCommand.validateProceedingsEltsHaveHandles(conferenceData)) {
+		if (!ValidateCommand.validateProceedingsEltsHaveSistedesHandles(conferenceData) 
+				|| !ValidateCommand.validateProceedingsEltsHaveInternalHandles(conferenceData)) {
 			System.err.println("ERROR: Some elements do not have a Handle. Execute the 'publish' command first.");
 			mainCmd.spec.subcommands().get("publish").getCommandSpec().commandLine().usage(System.err);
 			return 1;

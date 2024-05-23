@@ -56,7 +56,7 @@ class ValidateCommand implements Callable<Integer> {
 		boolean success = 
 				validateAuthorsHaveSistedesId(conferenceData) 
 				&& validateSubmissionsHaveType(conferenceData)
-				&& validateProceedingsEltsHaveHandles(conferenceData)
+				&& validateProceedingsEltsHaveSistedesHandles(conferenceData)
 				&& validateNotDuplicateHandles(conferenceData);
 		// @formatter:on
 		return success ? 0 : 1;
@@ -87,31 +87,19 @@ class ValidateCommand implements Callable<Integer> {
 		return isValid.get();
 	}
 
-	public static boolean validateProceedingsEltsHaveHandles(ConferenceData conferenceData) {
+	public static boolean validateProceedingsEltsHaveSistedesHandles(ConferenceData conferenceData) {
 		final AtomicBoolean isValid = new AtomicBoolean(true);
 		if (StringUtils.isEmpty(conferenceData.getEdition().getSistedesHandle())) {
 			logger.error(MessageFormat.format("Edition community ''{0}'' has no Sistedes Handle", conferenceData.getEdition().getId()));
-			isValid.set(false);
-		}
-		if (StringUtils.isEmpty(conferenceData.getEdition().getInternalHandle())) {
-			logger.error(MessageFormat.format("Edition community ''{0}'' has no internal Handle", conferenceData.getEdition().getShortName()));
 			isValid.set(false);
 		}
 		if (StringUtils.isEmpty(conferenceData.getEdition().getPreliminariesSistedesHandle())) {
 			logger.error("Preliminaries collection has no Sistedes Handle");
 			isValid.set(false);
 		}
-		if (StringUtils.isEmpty(conferenceData.getEdition().getPreliminariesInternalHandle())) {
-			logger.error("Preliminaries collection has no internal Handle");
-			isValid.set(false);
-		}
 		conferenceData.getPreliminaries().stream().forEach(prelim -> {
 			if (StringUtils.isEmpty(prelim.getSistedesHandle())) {
 				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no Sistedes Handle", prelim.getTitle(), prelim.getId()));
-				isValid.set(false);
-			}
-			if (StringUtils.isEmpty(prelim.getInternalHandle())) {
-				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no internal Handle", prelim.getTitle(), prelim.getId()));
 				isValid.set(false);
 			}
 		});
@@ -120,16 +108,48 @@ class ValidateCommand implements Callable<Integer> {
 				logger.error(MessageFormat.format("Track ''{0}'' ({1}) has no Sistedes Handle", track.getAcronym(), track.getId()));
 				isValid.set(false);
 			}
-			if (StringUtils.isEmpty(track.getInternalHandle())) {
-				logger.error(MessageFormat.format("Track ''{0}'' ({1}) has no internal Handle", track.getAcronym(), track.getId()));
-				isValid.set(false);
-			}
 		});
 		conferenceData.getSubmissions().values().stream().forEach(submission -> {
 			if (StringUtils.isEmpty(submission.getSistedesHandle())) {
 				logger.error(MessageFormat.format("Submission ''{0}'' ({1,number,#}) has no Sistedes Handle", submission.getTitle(), submission.getId()));
 				isValid.set(false);
 			}
+		});
+		return isValid.get();
+	}
+	
+	/**
+	 * This method should be no longer needed, since internal handles were required
+	 * to register the Sistedes Handle to Internal Handle redirection which is now
+	 * deprecated
+	 * 
+	 * @param conferenceData
+	 * @return
+	 */
+	@Deprecated
+	public static boolean validateProceedingsEltsHaveInternalHandles(ConferenceData conferenceData) {
+		final AtomicBoolean isValid = new AtomicBoolean(true);
+		if (StringUtils.isEmpty(conferenceData.getEdition().getInternalHandle())) {
+			logger.error(MessageFormat.format("Edition community ''{0}'' has no internal Handle", conferenceData.getEdition().getShortName()));
+			isValid.set(false);
+		}
+		if (StringUtils.isEmpty(conferenceData.getEdition().getPreliminariesInternalHandle())) {
+			logger.error("Preliminaries collection has no internal Handle");
+			isValid.set(false);
+		}
+		conferenceData.getPreliminaries().stream().forEach(prelim -> {
+			if (StringUtils.isEmpty(prelim.getInternalHandle())) {
+				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no internal Handle", prelim.getTitle(), prelim.getId()));
+				isValid.set(false);
+			}
+		});
+		conferenceData.getTracks().values().stream().forEach(track -> {
+			if (StringUtils.isEmpty(track.getInternalHandle())) {
+				logger.error(MessageFormat.format("Track ''{0}'' ({1}) has no internal Handle", track.getAcronym(), track.getId()));
+				isValid.set(false);
+			}
+		});
+		conferenceData.getSubmissions().values().stream().forEach(submission -> {
 			if (StringUtils.isEmpty(submission.getInternalHandle())) {
 				logger.error(MessageFormat.format("Submission ''{0}'' ({1,number,#}) has no internal Handle", submission.getTitle(), submission.getId()));
 				isValid.set(false);
