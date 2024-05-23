@@ -95,15 +95,15 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	private boolean private_ = false;
 
 	private ConferenceData conferenceData;
+	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
 	@Override
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
 
-		dsRoot = DSRoot.create(uri);
-		dsRoot.getAuthnEndpoint().doLogin(email, password);
-		
+		connection = new DSpaceConnection(uri, email, password);
+		dsRoot = connection.getDsRoot();
 		
 		try {
 			for (Author author : conferenceData.getAuthors().values()) {

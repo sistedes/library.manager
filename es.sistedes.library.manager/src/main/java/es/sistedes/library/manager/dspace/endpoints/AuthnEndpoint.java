@@ -25,7 +25,34 @@ public class AuthnEndpoint extends AbstractHateoas {
 		MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
 		data.add("user", email);
 		data.add("password", password);
-		return DSpaceConnectionManager.buildClient().post().uri(getLinkUri("login").get()).contentType(MediaType.APPLICATION_FORM_URLENCODED)
-				.body(BodyInserters.fromFormData(data)).retrieve().bodyToMono(LoginEndpoint.class).block();
+		return DSpaceConnectionManager
+				.buildClient()
+				.post()
+				.uri(getLinkUri("login").get())
+				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.body(BodyInserters.fromFormData(data))
+				.retrieve()
+				.bodyToMono(LoginEndpoint.class)
+				.block();
+	}
+
+	public void doLogout() {
+		DSpaceConnectionManager
+				.buildClient()
+				.post()
+				.uri(getLinkUri("logout").get())
+				.retrieve()
+				.toBodilessEntity()
+				.block();
+	}
+
+	public void refreshAuth() {
+		DSpaceConnectionManager
+				.buildClient()
+				.post()
+				.uri(getLinkUri("login").get())
+				.retrieve()
+				.toBodilessEntity()
+				.block();
 	}
 }

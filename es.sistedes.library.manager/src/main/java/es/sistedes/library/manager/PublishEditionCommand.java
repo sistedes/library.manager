@@ -93,6 +93,7 @@ class PublishEditionCommand implements Callable<Integer> {
 	private boolean private_ = false;
 
 	private ConferenceData conferenceData;
+	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
 	@Override
@@ -107,8 +108,8 @@ class PublishEditionCommand implements Callable<Integer> {
 			}
 		}
 
-		dsRoot = DSRoot.create(uri);
-		dsRoot.getAuthnEndpoint().doLogin(email, password);
+		connection = new DSpaceConnection(uri, email, password);
+		dsRoot = connection.getDsRoot();
 
 		try {
 			// Get the top level community
