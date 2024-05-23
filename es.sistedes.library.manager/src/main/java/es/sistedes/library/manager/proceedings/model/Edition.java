@@ -305,7 +305,7 @@ public class Edition extends AbstractProceedingsElement {
 				"El programa de {0} {1,number,#} se ha organizado en torno a sesiones temáticas o tracks.", acronym, year));
 		edition.getEditors().add("Doe, J.");
 		HandleGenerator.generateHandle(edition, prefix, acronym, year).ifPresent(edition::setSistedesHandle);
-		edition.setPreliminariesSistedesHandle(edition.getSistedesHandle() + "/PRELIMINARIES");
+		edition.setPreliminariesSistedesHandle(edition.getSistedesHandle() + "/PRELIMINARES");
 		return edition;
 	}
 }
