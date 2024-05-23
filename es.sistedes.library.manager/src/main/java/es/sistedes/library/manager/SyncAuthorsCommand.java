@@ -120,6 +120,18 @@ class SyncAuthorsCommand implements Callable<Integer> {
 
 	private void syncAuthor(Author author) {
 		Optional<DSAuthor> dsAuthorOpt = Optional.empty();
+		
+		if (author.getSistedesUuid() != null) {
+			try {
+				dsAuthorOpt = dsRoot.getItemsEndpoint().getAuthor(author.getSistedesUuid());
+			} catch(WebClientResponseException.NotFound e) {
+				// The Sistedes UUID is invalid!
+				// Discard it, and start over again...
+				logger.error(MessageFormat.format("Unable to find Author with Sistedes UUID ''{0}''...", author.getSistedesUuid()));
+				author.setSistedesUuid(null);
+			}
+		}
+		
 		if (author.getSistedesUuid() == null || force) {
 			dsAuthorOpt = findAuthor(author);
 			if (dsAuthorOpt.isPresent()) {
@@ -133,23 +145,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 				logger.warn(MessageFormat.format("Unable to find a match for ''{0}''", author));
 			}
 		}
+		
 		if (dryRun) {
-			logger.debug("Running in dry-run mode, skipping author retrieval, creation and update");
+			logger.debug("Running in dry-run mode, skipping author creation and update");
 		} else {
-			if (!force && author.getSistedesUuid() != null && dsAuthorOpt.isEmpty()) {
-				// We didn't retrieve an existing author because we're running in normal
-				// mode (i.e., not forced)
-				// We must retrieve it before continuing...
-				try {
-					dsAuthorOpt = dsRoot.getItemsEndpoint().getAuthor(author.getSistedesUuid());
-				} catch(WebClientResponseException.NotFound e) {
-					// The Sistedes UUID is invalid!
-					// Discard it, and create a new author...
-					logger.error(MessageFormat.format("Unable to find Author with Sistedes UUI ''{0}''...", author.getSistedesUuid()));
-					author.setSistedesUuid(null);
-					dsAuthorOpt = Optional.empty();
-				}
-			}
 			if (dsAuthorOpt.isEmpty()) {
 				// No existing author has been found, we must create it
 				logger.debug(MessageFormat.format("Creating Author for ''{0}''...", author));
