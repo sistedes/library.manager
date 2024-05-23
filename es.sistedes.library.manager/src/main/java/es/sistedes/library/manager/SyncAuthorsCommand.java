@@ -124,7 +124,11 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			dsAuthorOpt = findAuthor(author);
 			if (dsAuthorOpt.isPresent()) {
 				author.setSistedesUuid(dsAuthorOpt.get().getUuid());
-				logger.info(MessageFormat.format("Sistedes UUID ''{0}'' found for ''{1}''", author.getSistedesUuid(), author));
+				if (StringUtils.equals(dsAuthorOpt.get().getOrcid(), author.getOrcid())) {
+					logger.info(MessageFormat.format("Sistedes UUID ''{0}'' found with ORCID match for ''{1}''", author.getSistedesUuid(), author));
+				} else {
+					logger.info(MessageFormat.format("Sistedes UUID ''{0}'' found for ''{1}''", author.getSistedesUuid(), author));
+				}
 			} else {
 				logger.warn(MessageFormat.format("Unable to find a match for ''{0}''", author));
 			}
