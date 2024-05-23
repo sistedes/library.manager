@@ -162,7 +162,11 @@ class SyncAuthorsCommand implements Callable<Integer> {
 				DSAuthor dsAuthor = dsAuthorOpt.get();
 				for (Signature signature : author.getSignatures()) {
 					// @formatter:off
-					if (DSAuthor.shouldUpdateName(dsAuthor.getFullName(), signature.getFullName())) {
+					// Always replace the "main" author name by the latest signature name
+					// if they do not match.
+					// This is because we consider that the author will maintain his/her
+					// latest signature in future editions
+					if (!StringUtils.equals(dsAuthor.getFullName(), signature.getFullName())) {
 						updated = true;
 						// Set the current name as a variant
 						dsAuthor.addNameVariant(dsAuthor.getFullName());
@@ -170,7 +174,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						dsAuthor.setGivenName(signature.getGivenName());
 						dsAuthor.setFamilyName(signature.getFamilyName());
 						dsAuthor.setName(dsAuthor.getFullName());
-						// Make sure that the current name is not listed as a variant
+						// Make sure that the name we just set is not listed as a variant
 						// which was added in the past
 						dsAuthor.setNameVariants(dsAuthor.getNameVariants().stream().filter(variant -> !variant.equals(dsAuthor.getFullName())).toList());
 					} else if (!StringUtils.equals(

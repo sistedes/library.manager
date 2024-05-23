@@ -154,7 +154,15 @@ public class DSAuthor extends DSItem {
 		return cachedAuthorsCollection;
 	}
 
-	public static boolean shouldUpdateName(String existingName, String newName) {
+	/**
+	 * This method should no longer be used
+	 * 
+	 * @param existingName
+	 * @param newName
+	 * @return
+	 */
+	@Deprecated
+	private static boolean shouldUpdateName(String existingName, String newName) {
 		// Replace name if it is longer...
 		return newName.length() > existingName.length()
 				// ... or if the new name has more accents than the old
