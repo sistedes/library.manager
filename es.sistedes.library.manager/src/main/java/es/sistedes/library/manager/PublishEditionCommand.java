@@ -36,6 +36,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import com.lowagie.text.DocumentException;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
+import es.sistedes.library.manager.DSpaceConnectionManager.DSpaceConnection;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
 import es.sistedes.library.manager.dspace.model.DSBundle;
 import es.sistedes.library.manager.dspace.model.DSCollection;
@@ -108,7 +109,7 @@ class PublishEditionCommand implements Callable<Integer> {
 			}
 		}
 
-		connection = new DSpaceConnection(uri, email, password);
+		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 
 		try {

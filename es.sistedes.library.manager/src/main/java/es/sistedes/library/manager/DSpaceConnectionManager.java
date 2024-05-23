@@ -13,6 +13,8 @@ package es.sistedes.library.manager;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
@@ -29,10 +31,56 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import es.sistedes.library.manager.dspace.model.DSRoot;
 import reactor.core.publisher.Mono;
 
 public class DSpaceConnectionManager {
 
+	public static class DSpaceConnection {
+		
+		private static final int TIMEOUT_MINUTES = 25;
+		private DSRoot dsRoot;
+		private Date lastIssued;
+		private Thread refreshThread;
+		private volatile boolean exit = false;
+		
+		private DSpaceConnection(URI uri, String email, String password) {
+			dsRoot = DSRoot.create(uri);
+			dsRoot.getAuthnEndpoint().doLogin(email, password);
+			lastIssued = Calendar.getInstance().getTime();
+			refreshThread = new Thread() {
+				@Override
+				public void run() {
+					while (!exit) {
+						if (Calendar.getInstance().getTime().toInstant().getEpochSecond() - lastIssued.toInstant().getEpochSecond() > TIMEOUT_MINUTES * 60) {
+							dsRoot.getAuthnEndpoint().refreshAuth();
+							lastIssued = Calendar.getInstance().getTime();
+						}
+						try {
+							sleep(1000);
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+			};
+			refreshThread.setDaemon(true);
+			refreshThread.start();
+		}
+		
+		public DSRoot getDsRoot() {
+			return dsRoot;
+		}
+		
+		public void close() {
+			dsRoot.getAuthnEndpoint().doLogout();
+			exit = true;
+		}
+	}
+	
+	public static DSpaceConnection createConnection(URI uri, String email, String password) {
+		return new DSpaceConnection(uri, email, password);
+	}
+	
 	private static class CsrfClientExchangeFilterFunction implements ExchangeFilterFunction {
 
 		public static final CsrfClientExchangeFilterFunction INSTANCE = new CsrfClientExchangeFilterFunction();

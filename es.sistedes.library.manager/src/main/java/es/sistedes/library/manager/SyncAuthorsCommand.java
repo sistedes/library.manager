@@ -32,6 +32,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import com.simplenamematcher.SimpleNameMatcher;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
+import es.sistedes.library.manager.DSpaceConnectionManager.DSpaceConnection;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
 import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
@@ -102,7 +103,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
 
-		connection = new DSpaceConnection(uri, email, password);
+		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 		
 		try {
