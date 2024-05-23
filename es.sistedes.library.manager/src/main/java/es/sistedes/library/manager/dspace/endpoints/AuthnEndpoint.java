@@ -12,6 +12,7 @@
 package es.sistedes.library.manager.dspace.endpoints;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -25,7 +26,7 @@ public class AuthnEndpoint extends AbstractHateoas {
 		MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
 		data.add("user", email);
 		data.add("password", password);
-		return DSpaceConnectionManager
+		LoginEndpoint result = DSpaceConnectionManager
 				.buildClient()
 				.post()
 				.uri(getLinkUri("login").get())
@@ -34,10 +35,11 @@ public class AuthnEndpoint extends AbstractHateoas {
 				.retrieve()
 				.bodyToMono(LoginEndpoint.class)
 				.block();
+		return result;
 	}
 
-	public void doLogout() {
-		DSpaceConnectionManager
+	public ResponseEntity<Void> doLogout() {
+		return DSpaceConnectionManager
 				.buildClient()
 				.post()
 				.uri(getLinkUri("logout").get())
@@ -46,8 +48,8 @@ public class AuthnEndpoint extends AbstractHateoas {
 				.block();
 	}
 
-	public void refreshAuth() {
-		DSpaceConnectionManager
+	public ResponseEntity<Void> refreshAuth() {
+		return DSpaceConnectionManager
 				.buildClient()
 				.post()
 				.uri(getLinkUri("login").get())

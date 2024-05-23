@@ -16,7 +16,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -38,6 +41,8 @@ public class DSpaceConnectionManager {
 
 	public static class DSpaceConnection {
 		
+		private static final Logger logger = LoggerFactory.getLogger(DSpaceConnection.class);
+		
 		private static final int TIMEOUT_MINUTES = 25;
 		private DSRoot dsRoot;
 		private Date lastIssued;
@@ -53,7 +58,10 @@ public class DSpaceConnectionManager {
 				public void run() {
 					while (!exit) {
 						if (Calendar.getInstance().getTime().toInstant().getEpochSecond() - lastIssued.toInstant().getEpochSecond() > TIMEOUT_MINUTES * 60) {
-							dsRoot.getAuthnEndpoint().refreshAuth();
+							ResponseEntity<Void> result = dsRoot.getAuthnEndpoint().refreshAuth();
+							if (result.getStatusCode().isError()) {
+								logger.error("Unable to refresh JWT token!");
+							}
 							lastIssued = Calendar.getInstance().getTime();
 						}
 						try {
