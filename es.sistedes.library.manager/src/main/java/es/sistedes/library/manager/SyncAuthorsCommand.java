@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.simplenamematcher.SimpleNameMatcher;
 
@@ -135,7 +136,15 @@ class SyncAuthorsCommand implements Callable<Integer> {
 				// We didn't retrieve an existing author because we're running in normal
 				// mode (i.e., not forced)
 				// We must retrieve it before continuing...
-				dsAuthorOpt = dsRoot.getItemsEndpoint().getAuthor(author.getSistedesUuid());
+				try {
+					dsAuthorOpt = dsRoot.getItemsEndpoint().getAuthor(author.getSistedesUuid());
+				} catch(WebClientResponseException.NotFound e) {
+					// The Sistedes UUID is invalid!
+					// Discard it, and create a new author...
+					logger.error(MessageFormat.format("Unable to find Author with Sistedes UUI ''{0}''...", author.getSistedesUuid()));
+					author.setSistedesUuid(null);
+					dsAuthorOpt = Optional.empty();
+				}
 			}
 			if (dsAuthorOpt.isEmpty()) {
 				// No existing author has been found, we must create it
