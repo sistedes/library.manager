@@ -52,13 +52,10 @@ class ValidateCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
-		// @formatter:off
-		boolean success = 
-				validateAuthorsHaveSistedesId(conferenceData) 
-				&& validateSubmissionsHaveType(conferenceData)
-				&& validateProceedingsEltsHaveSistedesHandles(conferenceData)
-				&& validateNotDuplicateHandles(conferenceData);
-		// @formatter:on
+		boolean success = validateAuthorsHaveSistedesId(conferenceData);
+		success = validateSubmissionsHaveType(conferenceData) && success;
+		success = validateProceedingsEltsHaveSistedesHandles(conferenceData) && success;
+		success = validateNotDuplicateHandles(conferenceData) && success;
 		return success ? 0 : 1;
 	}
 
