@@ -196,7 +196,8 @@ class SyncAuthorsCommand implements Callable<Integer> {
 						dsAuthor.addAffiliation(signature.getFullAffiliation().trim());
 					}
 					// Add the e-mail if it doesn't exist yet
-					if (!dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
+					if (signature.getEmail() != null
+							&& !dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
 						updated = true;
 						dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
 					}
