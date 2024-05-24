@@ -24,7 +24,7 @@ The process to produce a new set of proceedings is typically as follows:
 
 4. **Create the Sistedes Handles in the Handle server**. Run the _Register external Handle_ ("Registrar Handle externo") curation task in the needed communities (i.e., those listed in Step 5).
 
-5. **Create the Thumbnails for the published documents (optional)**. Run the _Filter media_ ("Filtrar medios") curation task in the needed communities (i.e., those listed in Step 5). If the task is not manually executed, it will be eventually executed automatically as part of the maintenance tasks.
+5. **Create thumbnails for the published documents (optional)**. Run the _Filter media_ ("Filtrar medios") curation task in the needed communities (i.e., those listed in Step 5). If the task is not manually executed, it will be eventually executed automatically as part of the maintenance tasks.
 
 6. **Make authors public (if they were created as private)**. If authors are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the `Archivo documental de Sistedes > Autores` collection.
 
