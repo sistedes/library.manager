@@ -18,7 +18,7 @@ The process to produce a new set of proceedings is typically as follows:
 
     * NOTE: the `submissions` property inside the authors' signature in submission files is not used to produce the proceedings, and it is included only for informative purposes while manually editing the files.
 
-2. **Synchronize the authors' list** with the Sistedes Digital Library using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). 
+2. **Synchronize the authors' list** with the _Sistedes Digital Library_ using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). 
 
 3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a few minutes. The proceedings can be created either "public" or "private".
 
@@ -46,7 +46,7 @@ This program requires **maven** and **Java 17** to be built.
 
 ## Building
 
-To build the Sistedes Library Manager, simply run `mvn package` inside the `es.sistedes.library.manager` directory:
+To build the _Sistedes Digital Library Manager_, simply run `mvn package` inside the `es.sistedes.library.manager` directory:
 
 ```
 cd es.sistedes.library.manager
@@ -113,7 +113,7 @@ Next, we describe the CLI options for each subcommand.
 
 ### Initiliaze metadata (`init`)
 
-As aforementioned, this command takes an EasyChair dump file, and initializes a set of JSON files (together with the corresponding submission files) in the specified directory. These JSON files can be later refined to produce the full proceedings.
+As aforementioned, this command takes an EasyChair dump file, and initializes a set of JSON files (together with the corresponding submission files) in the specified directory. These JSON files can be later refined to produce the full proceedings. This command will try to detect the type of submission (either `abstract` or `paper`) based on the number of pages of the associated PDF file. In case of doubt, the user will be presented the list of custom tags used in EasyChair and asked to make a decision.
 
 ```
 Usage: java -jar <this-file.jar> init [-F] -a=ACRONYM [-i=DIR] [-o=DIR]
@@ -140,7 +140,7 @@ conference from EasyChair data.
 
 ### Synchronize authors (`sync-authors`)
 
-Synchronizes the authors information between the local submissions and the Sistedes Digital Library, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` the user will be asked whether found authors are a match or not. This command may take some time.
+Synchronizes the authors information between the local submissions and the _Sistedes Digital Library_, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` mode, the user will be asked whether found authors are a match or not. This command may take some time.
 
 ```
 Usage: java -jar <this-file.jar> sync-authors [-aFir] -e=E-MAIL -f=DIR
@@ -180,7 +180,7 @@ any modification.
 
 ### Publish proceedings (`publish`)
 
-Publishes the conference proceedings in the Sistedes Digital Library, publishing one document at a time. This may take some time.
+Publishes the conference proceedings in the _Sistedes Digital Library_, publishing one document at a time. This may take some time.
 
 ```
 Usage: java -jar <this-file.jar> publish [-aF] -e=E-MAIL -f=FILE -p=PASSWORD
