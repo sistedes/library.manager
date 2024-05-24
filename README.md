@@ -261,8 +261,8 @@ Registers the Handles of the newly published documents in the Sistedes Handle se
 ```
 Usage: java -jar <this-file.jar> register-handles -f=FILE -k=FILE [-p=PASSWORD]
        -P=PREFIX
-Registers the Sistedes Handles such that they point to the Digital Library
-internal Handles.
+(DEPRECATED) Registers the Sistedes Handles such that they point to the Digital
+Library internal Handles.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
   -k, --key-file=FILE       File with the secure key to authenticate in the
                               Handle system.
@@ -279,8 +279,8 @@ Dump a batch text file with all the commands to (optionally delete) and create t
 ```
 Usage: java -jar <this-file.jar> dump-handles-batch [-d] -f=FILE [-o=FILE]
        -P=PREFIX
-Dumps a set of Handle commands that can be run as a batch file to (optionally
-delete) and create all the Handles in the specified edition.
+(DEPRECATED) Dumps a set of Handle commands that can be run as a batch file to
+(optionally delete) and create all the Handles in the specified edition.
   -d, --delete              Also issue an initial DELETE command in order to
                               CREATE the Handles from scratch.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
@@ -288,7 +288,6 @@ delete) and create all the Handles in the specified edition.
                               FILE rather than shown in stdout.
   -P, --prefix=PREFIX       Handle prefix.
 ```
-
 
 ## License
 
