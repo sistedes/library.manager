@@ -182,21 +182,21 @@ public class EasyChairImporter implements IConferenceDataImporter {
 				} catch (ClassCastException e) {
 					rowReader.get("#", String.class).map(Integer::valueOf).ifPresent(submission::setId);
 				}
+				try {
+					if (rowReader.get("Deleted", String.class).orElse("").length() > 0) {
+						// The "Deleted" cell has a mark indicating the submission has
+						// been deleted. Return and do not process this row...
+						logger.warn(MessageFormat.format("Submission # ''{0}'' is marked as deleted, skipping...", submission.getId()));
+						return;
+					}
+				} catch (ClassCastException e) {
+				}
 				rowReader.get("Decision", String.class).ifPresent(decision -> {
 					if (!decision.contains("accept")) { // we also include "conditionally accept"
 						logger.warn(MessageFormat.format(
 								"Submission # ''{0}'' has not been accepted or conditionally accepted (decision is ''{1}''), skipping...", 
 								submission.getId(), decision));
 					} else {
-						try {
-							if (rowReader.get("Deleted", String.class).orElse("").length() > 0) {
-								// The "Deleted" cell has a mark indicating the submission has
-								// been deleted. Return and do not process this row...
-								logger.warn(MessageFormat.format("Submission # ''{0}'' is marked as deleted, skipping...", submission.getId()));
-								return;
-							}
-						} catch (ClassCastException e) {
-						}
 						logger.debug("Reading 'track #'");
 						try {
 							rowReader.get("Track #", Double.class).map(Double::intValue)
