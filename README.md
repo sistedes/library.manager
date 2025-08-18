@@ -118,23 +118,37 @@ As aforementioned, this command takes an EasyChair dump file, and initializes a 
 ```
 Usage: java -jar <this-file.jar> init [-F] -a=ACRONYM [-i=DIR] [-o=DIR]
                                       [-p=PATTERN] -P=PREFIX -x=FILE -y=YEAR
+                                      -A=KEY-VALUE [-A=KEY-VALUE]...
+                                      -R=KEY-VALUE [-R=KEY-VALUE]...
 Initializes the JSON files required to generate the proceedings of a Sistedes
 conference from EasyChair data.
-  -a, --acronym=ACRONYM   Acronym of the conference to be prepared.
-  -F, --force             Force execution, even if submission files are
-                            overwritten.
-  -i, --input=DIR         Input directory where the source PDF files must be
-                            looked for.
-  -o, --output=DIR        Ouput directory where the generated conference files
-                            should be placed.
-  -p, --pattern=PATTERN   Pattern describing the names of the submission files.
-                            {acronym} {year} and {id} will be substituted by
-                            the corresponding values. Default value is {acronym}
-                            _{year}_paper_{id}.pdf.
-  -P, --prefix=PREFIX     Handle prefix.
-  -x, --xslx=FILE         XSLX file as downloaded from the EasyChair
-                            'Conference data download' menu.
-  -y, --year=YEAR         Year of the edition to be prepared.
+  -a, --acronym=ACRONYM    Acronym of the conference to be prepared.
+  -A, --abstracts=KEY-VALUE
+                           Form fields (in the form of 'key=value' with NO
+                             SPACES around =) which denote that a given
+                             submission is an abstract. E.g.
+                             'Category=Published'. This parameter may be used
+                             as many times as needed.
+  -F, --force              Force execution, even if submission files are
+                             overwritten.
+  -i, --input=DIR          Input directory where the source PDF files must be
+                             looked for.
+  -o, --output=DIR         Ouput directory where the generated conference files
+                             should be placed.
+  -p, --pattern=PATTERN    Pattern describing the names of the submission
+                             files. {acronym} {year} and {id} will be
+                             substituted by the corresponding values. Default
+                             value is {acronym}_{year}_paper_{id}.pdf.
+  -P, --prefix=PREFIX      Handle prefix.
+  -R, --papers=KEY-VALUE   Form fields (in the form of 'key=value' with NO
+                             SPACES around =) which denote that a given
+                             submission is an abstract. E.g. 'Category=Full
+                             Paper'.This parameter may be used as many times as
+                             needed.
+  -x, --xslx=FILE          XSLX file as downloaded from the EasyChair
+                             'Conference data download' menu.
+  -y, --year=YEAR          Year of the edition to be prepared.
+
 ```
 
 
