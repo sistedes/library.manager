@@ -89,11 +89,15 @@ public class EasyChairImporter implements IConferenceDataImporter {
 			Track track = new Track();
 			try {
 				logger.debug("Reading '#'");
-				rowReader.get("#", Double.class).map(Double::intValue).ifPresent(track::setId);
+				try {
+					rowReader.get("#", Double.class).map(Double::intValue).ifPresent(track::setId);
+				} catch (ClassCastException e) {
+					rowReader.get("#", String.class).map(Integer::valueOf).ifPresent(track::setId);
+				}
 				logger.debug("Reading 'name'");
-				rowReader.get("name", String.class).map(StringUtils::stripAccents).ifPresent(track::setAcronym);
+				rowReader.get("Name", String.class).map(StringUtils::stripAccents).ifPresent(track::setAcronym);
 				logger.debug("Reading 'long name'");
-				rowReader.get("long name", String.class).ifPresent(track::setName);
+				rowReader.get("Long name", String.class).ifPresent(track::setName);
 				tracks.put(track.getId(), track);
 			} catch (Exception e) {
 				logger.error(MessageFormat.format("Error reading Track # ''{0}''", track.getId()));
@@ -114,30 +118,46 @@ public class EasyChairImporter implements IConferenceDataImporter {
 			Signature signature = new Signature();
 			try {
 				logger.debug("Reading 'person #'");
-				rowReader.get("person #", Double.class).map(Double::intValue).ifPresent(id -> signature.setAuthor(id));
+				try {
+					rowReader.get("Person #", Double.class).map(Double::intValue).ifPresent(id -> signature.setAuthor(id));
+				} catch (ClassCastException e) {
+					rowReader.get("Person #", String.class).map(Integer::valueOf).ifPresent(id -> signature.setAuthor(id));
+				}
 				logger.debug("Reading 'first name'");
-				rowReader.get("first name", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setGivenName);
+				rowReader.get("First name", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setGivenName);
 				logger.debug("Reading 'last name'");
-				rowReader.get("last name", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setFamilyName);
+				rowReader.get("Last name", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setFamilyName);
 				logger.debug("Reading 'email'");
-				rowReader.get("email", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setEmail);
+				try {
+					rowReader.get("Email", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setEmail);
+				} catch (ClassCastException e) {
+					// If the e-mail is not an String, we can safely ignore an invalid value in this field
+				}
 				logger.debug("Reading 'country'");
-				rowReader.get("country", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setCountry);
+				rowReader.get("Country", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setCountry);
 				logger.debug("Reading 'affiliation'");
-				rowReader.get("affiliation", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setAffiliation);
+				rowReader.get("Affiliation", String.class).map(StringUtils::normalizeSpace).ifPresent(signature::setAffiliation);
 				logger.debug("Reading 'submission #'");
-				rowReader.get("submission #", Double.class).map(Double::intValue).ifPresent(id -> submissionsSignatures.put(id, signature));
+				try {
+					rowReader.get("Submission #", Double.class).map(Double::intValue).ifPresent(id -> submissionsSignatures.put(id, signature));
+				} catch (ClassCastException e) {
+					rowReader.get("Submission #", String.class).map(Integer::valueOf).ifPresent(id -> submissionsSignatures.put(id, signature));
+				}
 				logger.debug("Reading 'Web page'");
-				rowReader.get("Web page", String.class).map(StringUtils::normalizeSpace).ifPresent(wp -> {
-					if (wp.contains("orcid.org")) {
-						Matcher matcher = Pattern.compile("https?://orcid\\.org/(?<orcid>[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})").matcher(wp);
-						if (matcher.matches()) {
-							signature.setOrcid(matcher.group("orcid"));
+				try {
+					rowReader.get("Web page", String.class).map(StringUtils::normalizeSpace).ifPresent(wp -> {
+						if (wp.contains("orcid.org")) {
+							Matcher matcher = Pattern.compile("https?://orcid\\.org/(?<orcid>[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})").matcher(wp);
+							if (matcher.matches()) {
+								signature.setOrcid(matcher.group("orcid"));
+							}
+						} else {
+							signature.setWeb(wp);
 						}
-					} else {
-						signature.setWeb(wp);
-					}
-				});
+					});
+				} catch (ClassCastException e) {
+					// If the web page is not an String, we can safely ignore an invalid value in this field
+				}
 			} catch (Exception e) {
 				logger.error(MessageFormat.format("Error reading Author # ''{0}''", signature.getAuthor()));
 			}
@@ -156,28 +176,47 @@ public class EasyChairImporter implements IConferenceDataImporter {
 		new SheetReader(sheet).forEach(rowReader -> {
 			Submission submission = new Submission();
 			try {
-				rowReader.get("decision", String.class).ifPresent(decision -> {
-					if (decision.contains("accept")) { // we also include "conditionally accept"
-						logger.debug("Reading '#'");
-						rowReader.get("#", Double.class).map(Double::intValue).ifPresent(submission::setId);
+				logger.debug("Reading '#'");
+				try {
+					rowReader.get("#", Double.class).map(Double::intValue).ifPresent(submission::setId);
+				} catch (ClassCastException e) {
+					rowReader.get("#", String.class).map(Integer::valueOf).ifPresent(submission::setId);
+				}
+				rowReader.get("Decision", String.class).ifPresent(decision -> {
+					if (!decision.contains("accept")) { // we also include "conditionally accept"
+						logger.error(MessageFormat.format("Submission # ''{0}'' has not been accepted or conditionally accepted, skipping...", submission.getId()));
+					} else {
+						try {
+							if (rowReader.get("Deleted", String.class).orElse("").length() > 0) {
+								// The "Deleted" cell has a mark indicating the submission has
+								// been deleted. Return and do not process this row...
+								logger.error(MessageFormat.format("Submission # ''{0}'' is marked as deleted, skipping...", submission.getId()));
+								return;
+							}
+						} catch (ClassCastException e) {
+						}
 						logger.debug("Reading 'track #'");
-						rowReader.get("track #", Double.class).map(Double::intValue).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
+						try {
+							rowReader.get("Track #", Double.class).map(Double::intValue).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
+						} catch (ClassCastException e) {
+							rowReader.get("Track #", String.class).map(Integer::valueOf).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
+						}
 						logger.debug("Reading 'title'");
-						rowReader.get("title", String.class).map(StringUtils::normalizeSpace).ifPresent(submission::setTitle);
+						rowReader.get("Title", String.class).map(StringUtils::normalizeSpace).ifPresent(submission::setTitle);
 						logger.debug("Reading 'keywords'");
-						rowReader.get("keywords", String.class).map(Submission::extractKeywordsList)
+						rowReader.get("Keywords", String.class).map(Submission::extractKeywordsList)
 								.ifPresent(list -> list.stream().forEach(kw -> submission.getKeywords().add(kw)));
 						logger.debug("Reading 'form fields'");
-						rowReader.get("form fields", String.class).map(Submission::extractFormFields).ifPresent(submission::setFormFields);
+						rowReader.get("Form fields", String.class).map(Submission::extractFormFields).ifPresent(submission::setFormFields);
 						logger.debug("Reading 'abstract'");
-						rowReader.get("abstract", String.class).ifPresent(submission::setAbstract);
+						rowReader.get("Abstract", String.class).ifPresent(submission::setAbstract);
 						submission.getSignatures().addAll(submissionsSignatures.get(submission.getId()));
 						logger.debug("Reading 'authors'");
-						rowReader.get("authors", String.class).ifPresent(str -> {
+						rowReader.get("Authors", String.class).ifPresent(str -> {
 							// Ensure that the authors signature are in the right order
 							// To ease the comparison, we can assume that the only ' and ' will be the
 							// separator between the last and the next-to-last signatures
-							if (!str.replaceAll(" and ", ", ").equals(
+							if (!str.replaceAll("[\\s\\n]+and[\\s\\n]+", ", ").replaceAll("[\\s\\n]+", " ").equals(
 									submission.getSignatures().stream().map(s -> s.getGivenName() + " " + s.getFamilyName()).collect(Collectors.joining(", ")))) {
 								logger.warn(MessageFormat.format(
 										"Authors in 'Authors' sheet are not in the same order than in the 'Submissions' sheet for submission #{0}",
