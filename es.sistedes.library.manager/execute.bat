@@ -8,7 +8,7 @@ REM which accompanies this distribution, and is available at
 REM http://www.eclipse.org/legal/epl-v20.html
 REM
 REM Contributors:
-REM Abel GÃ³mez - initial API and implementation
+REM Abel Gómez - initial API and implementation
 REM
 
 REM 
@@ -46,13 +46,15 @@ GOTO END
 
 :INIT
 SET COMMON_OPTS=init -y %YEAR% -P %HANDLE_PREFIX%
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %JISBD% -i "%INPUT_DIR%/%JISBD%" -o "%OUTPUT_DIR%/%JISBD%" -p %JISBD_PDF_PATTERN% -x %JISBD_XLSX%
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %JCIS%  -i "%INPUT_DIR%/%JCIS%"  -o "%OUTPUT_DIR%/%JCIS%"  -p  %JCIS_PDF_PATTERN% -x  %JCIS_XLSX%
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OUTPUT_DIR%/%PROLE%" -p %PROLE_PDF_PATTERN% -x %PROLE_XLSX%
+@ECHO ON
+CALL java -jar target/%JAR% %COMMON_OPTS% -a %JISBD% -i "%INPUT_DIR%/%JISBD%" -o "%OUTPUT_DIR%/%JISBD%" -p %JISBD_PDF_PATTERN% -x %JISBD_XLSX% %JISBD_INIT_ARGS%
+CALL java -jar target/%JAR% %COMMON_OPTS% -a %JCIS%  -i "%INPUT_DIR%/%JCIS%"  -o "%OUTPUT_DIR%/%JCIS%"  -p  %JCIS_PDF_PATTERN% -x %JCIS_XLSX%  %JCIS_INIT_ARGS%
+CALL java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OUTPUT_DIR%/%PROLE%" -p %PROLE_PDF_PATTERN% -x %PROLE_XLSX% %PROLE_INIT_ARGS%
 GOTO END
 
 :SYNC_AUTHORS
 SET COMMON_OPTS=sync-authors -i -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
+@ECHO ON
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
@@ -60,6 +62,7 @@ GOTO END
 
 :PUBLISH
 SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
+@ECHO ON
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
@@ -67,6 +70,7 @@ GOTO END
 
 :VALIDATE
 SET COMMON_OPTS=validate
+@ECHO ON
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%

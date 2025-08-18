@@ -15,7 +15,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>es.sistedes</groupId>
 	<artifactId>library.manager</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
 	<name>library.manager</name>
 	<description>Sistedes Digital Library Manager</description>
 	<properties>
