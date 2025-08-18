@@ -14,6 +14,7 @@ package es.sistedes.library.manager;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.MessageFormat;
@@ -109,7 +110,13 @@ class InitializeCommand implements Callable<Integer> {
 
 	private void setSubmissionType(Submission submission) throws IOException {
 		File submissionFile = new File(inputDir, EasyChairImporter.getSourceSubmissionFileName(submission, acronym, year, pattern));
-		PDDocument document = PDDocument.load(submissionFile);
+		PDDocument document = null;
+		try {
+			document = PDDocument.load(submissionFile);
+		} catch (FileNotFoundException e) {
+			logger.error(MessageFormat.format("Submission ''{0}'' has no file!", submissionFile));
+			return;
+		}
 		int pages = document.getNumberOfPages();
 		logger.info(MessageFormat.format("Submission ''{0}'' has the following custom fields: {1}", submissionFile, Arrays.asList(submission.getFormFields()).toString()));
 		if (pages == 1) {
@@ -136,7 +143,7 @@ class InitializeCommand implements Callable<Integer> {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			submission.setType(Type.ABSTRACT);
+			submission.setType(type);
 		} else {
 			submission.setType(Type.PAPER);
 		}
