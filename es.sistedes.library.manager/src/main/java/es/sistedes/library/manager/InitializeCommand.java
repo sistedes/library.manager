@@ -11,14 +11,12 @@
 
 package es.sistedes.library.manager;
 
-import java.awt.Toolkit;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -85,6 +83,16 @@ class InitializeCommand implements Callable<Integer> {
 			description = "Pattern describing the names of the submission files. {acronym} {year} and {id} will be substituted by the corresponding values. "
 					+ "Default value is {acronym}_{year}_paper_{id}.pdf.")
 	private String pattern;
+	
+	@Option(names = { "-A", "--abstracts" }, paramLabel = "KEY-VALUE", required = true,
+			description = "Form fields (in the form of 'key=value' with NO SPACES around =) which denote that a given submission is an abstract. E.g. 'Category=Published'. "
+					+ "This parameter may be used as many times as needed.")
+	private String[] abstractsFormFields;
+	
+	@Option(names = { "-R", "--papers" }, paramLabel = "KEY-VALUE", required = true,
+			description = "Form fields (in the form of 'key=value' with NO SPACES around =) which denote that a given submission is an abstract. E.g. 'Category=Full Paper'."
+					+ "This parameter may be used as many times as needed.")
+	private String[] papersFormFields;
 
 	@Option(names = { "-F", "--force" }, 
 			description = "Force execution, even if submission files are overwritten.")
@@ -97,7 +105,7 @@ class InitializeCommand implements Callable<Integer> {
 		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, prefix, acronym, year, pattern, force).getData();
 		
 		for (Submission submission : conferenceData.getSubmissions().values()) {
-			setSubmissionType(submission);
+			setSubmissionType(submission, Arrays.asList(abstractsFormFields), Arrays.asList(papersFormFields));
 		}
 		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
@@ -108,7 +116,7 @@ class InitializeCommand implements Callable<Integer> {
 	}
 
 
-	private void setSubmissionType(Submission submission) throws IOException {
+	private void setSubmissionType(Submission submission, List<String> abstracts, List<String> papers) throws IOException {
 		File submissionFile = new File(inputDir, EasyChairImporter.getSourceSubmissionFileName(submission, acronym, year, pattern));
 		PDDocument document = null;
 		try {
@@ -119,35 +127,26 @@ class InitializeCommand implements Callable<Integer> {
 		}
 		int pages = document.getNumberOfPages();
 		logger.info(MessageFormat.format("Submission ''{0}'' has the following custom fields: {1}", submissionFile, Arrays.asList(submission.getFormFields()).toString()));
-		if (pages == 1) {
-			submission.setType(Type.ABSTRACT);
-		} else if (document.getNumberOfPages() < 4) {
-			System.out.print(MessageFormat.format("Submission ''{0}'' has ''{1}'' pages. Is it an ABSTRACT (A) or a PAPER (P)? ", submissionFile, pages));
-			Toolkit.getDefaultToolkit().beep();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-			Type type = null;
-			try {
-				do {
-					System.out.print("[A/P]: ");
-					switch (reader.readLine()) {
-					case "A":
-					case "a":
-						type = Type.ABSTRACT;
-						break;
-					case "P":
-					case "p":
-						type = Type.PAPER;
-						break;
-					}
-				} while (type == null);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+		
+		submission.getFormFields().forEach((key, value) -> {
+			if (abstracts.contains(key  + "=" + value)) {
+				submission.setType(Type.ABSTRACT);
+			} else if (papers.contains(key  + "=" + value)) {
+				submission.setType(Type.PAPER);
 			}
-			submission.setType(type);
-		} else {
-			submission.setType(Type.PAPER);
+		});
+		if (submission.getType() == null) {
+			throw new RuntimeException(
+					MessageFormat.format("Submission ''{0}'' with the following custom fields {1} does not indicate a known for field for 'paper' or 'abstract'.",
+							submissionFile, Arrays.asList(submission.getFormFields()).toString()));
 		}
-		logger.info(
-				MessageFormat.format("Submission ''{0}'' has ''{1}'' page(s) and has been marked as {2}", submissionFile, pages, submission.getType()));
+		
+		if (pages < 4 && submission.getType() == Type.PAPER) {
+			logger.warn(MessageFormat.format("Submission ''{0}'' has ''{1}'' page(s) and has been marked as {2}", submissionFile, pages, submission.getType()));
+		} else if (pages > 1 && submission.getType() == Type.ABSTRACT) {
+			logger.warn(MessageFormat.format("Submission ''{0}'' has ''{1}'' page(s) and has been marked as {2}", submissionFile, pages, submission.getType()));
+		} else {
+			logger.info(MessageFormat.format("Submission ''{0}'' has ''{1}'' page(s) and has been marked as {2}", submissionFile, pages, submission.getType()));
+		}
 	}
 }
