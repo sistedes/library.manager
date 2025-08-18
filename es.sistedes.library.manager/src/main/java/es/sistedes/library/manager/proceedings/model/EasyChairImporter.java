@@ -184,22 +184,26 @@ public class EasyChairImporter implements IConferenceDataImporter {
 				}
 				rowReader.get("Decision", String.class).ifPresent(decision -> {
 					if (!decision.contains("accept")) { // we also include "conditionally accept"
-						logger.error(MessageFormat.format("Submission # ''{0}'' has not been accepted or conditionally accepted, skipping...", submission.getId()));
+						logger.warn(MessageFormat.format(
+								"Submission # ''{0}'' has not been accepted or conditionally accepted (decision is ''{1}''), skipping...", 
+								submission.getId(), decision));
 					} else {
 						try {
 							if (rowReader.get("Deleted", String.class).orElse("").length() > 0) {
 								// The "Deleted" cell has a mark indicating the submission has
 								// been deleted. Return and do not process this row...
-								logger.error(MessageFormat.format("Submission # ''{0}'' is marked as deleted, skipping...", submission.getId()));
+								logger.warn(MessageFormat.format("Submission # ''{0}'' is marked as deleted, skipping...", submission.getId()));
 								return;
 							}
 						} catch (ClassCastException e) {
 						}
 						logger.debug("Reading 'track #'");
 						try {
-							rowReader.get("Track #", Double.class).map(Double::intValue).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
+							rowReader.get("Track #", Double.class).map(Double::intValue)
+									.ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
 						} catch (ClassCastException e) {
-							rowReader.get("Track #", String.class).map(Integer::valueOf).ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
+							rowReader.get("Track #", String.class).map(Integer::valueOf)
+									.ifPresent(track -> tracks.get(track).getSubmissions().add(submission.getId()));
 						}
 						logger.debug("Reading 'title'");
 						rowReader.get("Title", String.class).map(StringUtils::normalizeSpace).ifPresent(submission::setTitle);
@@ -214,10 +218,17 @@ public class EasyChairImporter implements IConferenceDataImporter {
 						logger.debug("Reading 'authors'");
 						rowReader.get("Authors", String.class).ifPresent(str -> {
 							// Ensure that the authors signature are in the right order
-							// To ease the comparison, we can assume that the only ' and ' will be the
+							// To ease the comparison, we assume that the only ' and ' will be the
 							// separator between the last and the next-to-last signatures
-							if (!str.replaceAll("[\\s\\n]+and[\\s\\n]+", ", ").replaceAll("[\\s\\n]+", " ").equals(
-									submission.getSignatures().stream().map(s -> s.getGivenName() + " " + s.getFamilyName()).collect(Collectors.joining(", ")))) {
+							// We must be cautious in the comparison, since EasyChair may add line breaks
+							if (!str.replaceAll("[\\s\\n]+and[\\s\\n]+", ", ")
+									.replaceAll("[\\s\\n]+", " ")
+									.equals(submission.getSignatures()
+											.stream()
+											.map(s -> s.getGivenName() + " " + s.getFamilyName())
+											.collect(Collectors.joining(", "))
+									)
+							) {
 								logger.warn(MessageFormat.format(
 										"Authors in 'Authors' sheet are not in the same order than in the 'Submissions' sheet for submission #{0}",
 										submission.getId()));
