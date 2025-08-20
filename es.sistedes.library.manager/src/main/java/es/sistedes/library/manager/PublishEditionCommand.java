@@ -96,7 +96,7 @@ class PublishEditionCommand implements Callable<Integer> {
 	private boolean private_ = false;
 	
 	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created communities, "
-			+ "collections and items (i.e., filtermedia, generatecitation, generatebibcitation).")
+			+ "collections and items (i.e., registerexternalhandle, filtermedia, generatecitation, generatebibcitation).")
 	private boolean curate = false;
 
 	private ConferenceData conferenceData;
@@ -140,6 +140,9 @@ class PublishEditionCommand implements Callable<Integer> {
 			
 			// @formatter:off
 			if (curate) {
+				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "registerexternalhandle"), 
+						new DSParameter("-i", editionCommunity.getHandle())));
 				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 						new DSParameter("-t", "filtermedia"), 
 						new DSParameter("-i", editionCommunity.getHandle())));
