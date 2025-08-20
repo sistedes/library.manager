@@ -21,9 +21,9 @@ public class CliLauncher {
 	// @formatter:off
 	@Command(name = "java -jar <this-file.jar>",
 			description = "Manage the Sistedes Digital Library.",
-			mixinStandardHelpOptions = true, version = "20230704.0",
+			mixinStandardHelpOptions = true, version = "20250819.0",
 			subcommands = { InitializeCommand.class, SyncAuthorsCommand.class, ValidateCommand.class, 
-					PublishEditionCommand.class, ListCommand.class, SplitCommand.class, RegisterHandlesCommand.class, DumpHandlesBatch.class})
+					PublishEditionCommand.class, ListCommand.class, SplitCommand.class, CurateAuthorsCommand.class, RegisterHandlesCommand.class, DumpHandlesBatch.class})
 	// @formatter:on
 	static class Commands {
 		@Spec
