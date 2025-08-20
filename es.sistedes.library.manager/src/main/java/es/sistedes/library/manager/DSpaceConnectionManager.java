@@ -12,13 +12,15 @@
 package es.sistedes.library.manager;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.LinkedMultiValueMap;
@@ -51,6 +53,7 @@ public class DSpaceConnectionManager {
 		
 		private DSpaceConnection(URI uri, String email, String password) {
 			dsRoot = DSRoot.create(uri);
+			dsRoot.callCsrfEndpoint();
 			dsRoot.getAuthnEndpoint().doLogin(email, password);
 			lastIssued = Calendar.getInstance().getTime();
 			refreshThread = new Thread() {
@@ -113,9 +116,16 @@ public class DSpaceConnectionManager {
 			return next.exchange(newRequest).flatMap(response -> {
 				xsrfToken = response.headers().header(DSPACE_XSRF_TOKEN).stream().findAny().orElse(xsrfToken);
 				authToken = response.headers().header(AUTHORIZATION_HEADER).stream().findAny().orElse(authToken);
-				response.cookies().forEach((name, cookie) -> {
-					prevCookies.put(name, Arrays.asList(cookie.get(0).getValue()));
-				});
+				List<ResponseCookie> responseCookies = response.cookies().get("DSPACE-XSRF-COOKIE");
+				if (responseCookies != null) {
+					// We iterate and remove empty-value cookies since they may be duplicated
+					// Seems related to issue https://github.com/DSpace/DSpace/issues/9773 
+					prevCookies.put("DSPACE-XSRF-COOKIE", responseCookies
+							.stream()
+							.map(cookie -> cookie.getValue())
+							.filter(v -> StringUtils.isNotEmpty(v))
+							.toList());
+				}
 				return Mono.just(response);
 			});
 		}

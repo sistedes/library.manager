@@ -22,20 +22,20 @@ import es.sistedes.library.manager.dspace.model.AbstractHateoas;
 
 public class AuthnEndpoint extends AbstractHateoas {
 
-	public LoginEndpoint doLogin(String email, String password) {
+	public void doLogin(String email, String password) {
 		MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
 		data.add("user", email);
 		data.add("password", password);
-		LoginEndpoint result = DSpaceConnectionManager
+		DSpaceConnectionManager
 				.buildClient()
 				.post()
 				.uri(getLinkUri("login").get())
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
 				.body(BodyInserters.fromFormData(data))
 				.retrieve()
-				.bodyToMono(LoginEndpoint.class)
+				.toBodilessEntity()
+				.doOnError(throwable -> new RuntimeException("Unable to log in! We cannot continue!"))
 				.block();
-		return result;
 	}
 
 	public ResponseEntity<Void> doLogout() {

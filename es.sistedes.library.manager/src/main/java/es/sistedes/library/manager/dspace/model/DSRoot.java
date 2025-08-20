@@ -25,6 +25,7 @@ import es.sistedes.library.manager.dspace.endpoints.ItemsEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.RelationshipTypesEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.RelationshipsEndpoint;
 import es.sistedes.library.manager.dspace.endpoints.ResourcePoliciesEndpoint;
+import es.sistedes.library.manager.dspace.endpoints.ScriptsEndpoint;
 
 public class DSRoot extends AbstractHateoas {
 
@@ -32,6 +33,10 @@ public class DSRoot extends AbstractHateoas {
 		return DSpaceConnectionManager.buildClient().get().uri(rootUri).retrieve().bodyToMono(DSRoot.class).block();
 	}
 
+	public void callCsrfEndpoint() {
+		DSpaceConnectionManager.buildClient(getSelfUri()).get().uri(uriBuilder -> uriBuilder.pathSegment("security", "csrf").build()).retrieve().toBodilessEntity().block();
+	}
+	
 	public AuthnEndpoint getAuthnEndpoint() {
 		return DSpaceConnectionManager.buildClient().get().uri(getLinkUri("authn").get()).retrieve().bodyToMono(AuthnEndpoint.class).block();
 	}
@@ -69,6 +74,11 @@ public class DSRoot extends AbstractHateoas {
 		// The bundles endpoint cannot be GETted, thus, we create a dummy instance with the "self" link for convenience purposes
 		return new BundlesEndpoint(getLinkUri("bundles").get());
 	}
+	
+	public ScriptsEndpoint getScriptsEndpoint() {
+		return DSpaceConnectionManager.buildClient(getSelfUri()).get().uri(
+				uriBuilder -> uriBuilder.pathSegment("system", "scripts").build()).retrieve().bodyToMono(ScriptsEndpoint.class).block();
+	}	
 	
 	public Optional<DSAuthor> searchAuthor(String query) {
 		return getDiscoverEndpoint().getSearchEndpoint().getSearchObjectsEndpoint().newAuthorQuery(query).getQueryResults().getFirst();
