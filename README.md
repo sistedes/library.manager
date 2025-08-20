@@ -18,24 +18,20 @@ The process to produce a new set of proceedings is typically as follows:
 
     * NOTE: the `submissions` property inside the authors' signature in submission files is not used to produce the proceedings, and it is included only for informative purposes while manually editing the files.
 
-2. **Synchronize the authors' list** with the _Sistedes Digital Library_ using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). 
+2. **Synchronize the authors' list** with the _Sistedes Digital Library_ using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). In order to finish the publication, it is necessary to run the `sync-authors` command with the `--curate` option (or run the `curate-authors` command separately, or run the needed curation tasks manually from the DSpace UI).
 
-3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a few minutes. The proceedings can be created either "public" or "private".
+3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a few minutes. The proceedings can be created either "public" or "private". In order to finish the publication, it is necessary to run the `publish` command with the `--curate` option (or run the needed curation tasks manually from the DSpace UI).
 
-4. **Create the Sistedes Handles in the Handle server**. Run the _Register external Handle_ ("Registrar Handle externo") curation task in the needed communities (i.e., those listed in Step 5).
+4. **Make authors public (if they were created as private)**. If authors are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the `Archivo documental de Sistedes > Autores` collection.
 
-5. **Create thumbnails for the published documents (optional)**. Run the _Filter media_ ("Filtrar medios") curation task in the needed communities (i.e., those listed in Step 7). If the task is not manually executed, it will be eventually executed automatically as part of the maintenance tasks.
-
-6. **Make authors public (if they were created as private)**. If authors are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the `Archivo documental de Sistedes > Autores` collection.
-
-7. **Make the proceedings public (if they were created as private)**. If the proceedings are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the corresponding communities:
+5. **Make the proceedings public (if they were created as private)**. If the proceedings are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the corresponding communities:
 
 * `Jornadas de Ciencia e Ingeniería de Servicios (JCIS) > JCIS <YEAR> (<Location>)`
 * `Jornadas de Ingeniería del Software y Bases de Datos (JISBD) > JISBD <YEAR> (<Location>)`
 * `Jornadas sobre Programación y Lenguajes (PROLE) > PROLE <YEAR> (<Location>)`
 * `Archivo documental de Sistedes > Jornadas Sistedes > Sistedes <YEAR> (<Location>)` if there are documents that are shared among them (as is typically the case in CEDI editions).
 
-8. **List the new proceedings in the home page**. In order to make the new proceedings visible in the _Highlighted proceedings_ ("Jornadas destacadas") section in the home page, the `/opt/dspace.ui/config/config.prod.yml` must be updated accordingly.
+6. **List the new proceedings in the home page**. In order to make the new proceedings visible in the _Highlighted proceedings_ ("Jornadas destacadas") section in the home page, the `/opt/dspace.ui/config/config.prod.yml` must be updated accordingly.
 
 
 ## Requirements
