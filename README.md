@@ -14,7 +14,7 @@ The process to produce a new set of proceedings is typically as follows:
 
     * Add the needed _Preliminaries_ for the conference proceedings (typically _Preface_, _Commitees_, and _Invited talk_). Pay special attention to the `id` and `filename` properties to avoid overwriting files on each execution.
 
-    * Double check the titles of the submissions (remove clarifications between parentheses about the type of paper --e.g., abstract, summary, etc.--).
+    * Use the list`subcommand to generate listings and detect issues that must be manually fixed. E.g., remove clarifications between parentheses about the type of paper --e.g., abstract, summary, etc.--, detect authors with inconsistent e-mails, ORCIDs or names, etc.
 
     * NOTE: the `submissions` property inside the authors' signature in submission files is not used to produce the proceedings, and it is included only for informative purposes while manually editing the files.
 
@@ -75,8 +75,6 @@ Below you can find the main usage options:
 
 ```
 Usage: java -jar <this-file.jar> [-hV] [COMMAND]
-Missing required subcommand
-Usage: java -jar <this-file.jar> [-hV] [COMMAND]
 Manage the Sistedes Digital Library.
   -h, --help      Show this help message and exit.
   -V, --version   Print version information and exit.
@@ -102,6 +100,11 @@ Commands:
                         full proceedings of a conference and sets up the JSON
                         files required to generate the proceedings in the new
                         Digital Library.
+  curate-authors      Launches all the curation tasks that may be applicable to
+                        newly created authors in the Sistedes Digital Library.
+                        Since the process is executed asynchonously by DSpace,
+                        no feedback about the execution result is given. The
+                        DSpace UI can be used to get more feedback.
   register-handles    (DEPRECATED) Registers the Sistedes Handles such that
                         they point to the Digital Library internal Handles.
   dump-handles-batch  (DEPRECATED) Dumps a set of Handle commands that can be
@@ -157,7 +160,7 @@ conference from EasyChair data.
 Synchronizes the authors information between the local submissions and the _Sistedes Digital Library_, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` mode, the user will be asked whether found authors are a match or not. This command may take some time.
 
 ```
-Usage: java -jar <this-file.jar> sync-authors [-aFir] -e=E-MAIL -f=DIR
+Usage: java -jar <this-file.jar> sync-authors [-acFir] -e=E-MAIL -f=DIR
        -p=PASSWORD -u=URI
 Synchronizes the authors information between the local submissions and the
 Sistedes Digital Library, trying to match existing authors in the library with
@@ -167,6 +170,9 @@ forced mode, information about  already identified authors will be discarded
 and a new match will be attempted.
   -a, --admin-only          Create new authors with administrator-only
                               permissions (i.e., hidden to the general public).
+  -c, --curate              Also launch curation tasks that may be applicable
+                              to the newly created Authors (i.e.,
+                              refreshsistedesauthortitle)
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=DIR    JSON file including the conference edition metadata.
@@ -197,12 +203,16 @@ any modification.
 Publishes the conference proceedings in the _Sistedes Digital Library_, publishing one document at a time. This may take some time.
 
 ```
-Usage: java -jar <this-file.jar> publish [-aF] -e=E-MAIL -f=FILE -p=PASSWORD
+Usage: java -jar <this-file.jar> publish [-acF] -e=E-MAIL -f=FILE -p=PASSWORD
        -u=URI
 Publishes the specified edition in the Sistedes Digital Library. Published
 elements will be recorded locally to avoid recreating them.
   -a, --admin-only          Publish with administrator-only permissions (i.e.,
                               hidden to the general public).
+  -c, --curate              Also launch curation tasks that may be applicable
+                              to the newly created communities, collections and
+                              items (i.e., filtermedia, generatecitation,
+                              generatebibcitation).
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
@@ -218,7 +228,7 @@ elements will be recorded locally to avoid recreating them.
 Produce some listings that may be useful to detect inconsistencies and errors in the metadata files. If multiple listings are specified, they will be shown in a rown.
 
 ```
-Usage: java -jar <this-file.jar> list [-ent] -f=FILE
+Usage: java -jar <this-file.jar> list [-enot] -f=FILE
 Generates different listings of the conference data.
   -e, --authors-with-different-emails
                             List the authors that have more than one different
@@ -227,6 +237,9 @@ Generates different listings of the conference data.
   -n, --authors-with-different-names
                             List the authors that have more than one different
                               name in his/her signature.
+  -o, --authors-with-different-orcids
+                            List the authors that have more than one different
+                              ORCID in his/her signature.
   -t, --paper-titles        List all the titles of the papers.
 ```
 

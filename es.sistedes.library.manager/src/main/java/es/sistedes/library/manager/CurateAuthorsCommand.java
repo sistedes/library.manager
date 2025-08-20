@@ -34,7 +34,7 @@ import picocli.CommandLine.Spec;
 @Command(name = "curate-authors", 
 		description = "Launches all the curation tasks that may be applicable to newly created "
 				+ "authors in the Sistedes Digital Library. Since the process is executed "
-				+ "asynchonously by DSPace, no feedback about the execution result is given. "
+				+ "asynchonously by DSpace, no feedback about the execution result is given. "
 				+ "The DSpace UI can be used to get more feedback.")
 				
 // @formatter:on

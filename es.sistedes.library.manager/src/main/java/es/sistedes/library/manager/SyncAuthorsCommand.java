@@ -97,7 +97,8 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	@Option(names = { "-a", "--admin-only" }, description = "Create new authors with administrator-only permissions (i.e., hidden to the general public).")
 	private boolean private_ = false;
 
-	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created Authors (e.g., generate 'dc.title')")
+	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created Authors "
+			+ "(i.e., refreshsistedesauthortitle)")
 	private boolean curate = false;
 	
 	private ConferenceData conferenceData;
