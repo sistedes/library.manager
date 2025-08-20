@@ -20,6 +20,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -42,6 +43,7 @@ import es.sistedes.library.manager.dspace.model.DSBundle;
 import es.sistedes.library.manager.dspace.model.DSCollection;
 import es.sistedes.library.manager.dspace.model.DSCommunity;
 import es.sistedes.library.manager.dspace.model.DSItem;
+import es.sistedes.library.manager.dspace.model.DSProcess.DSParameter;
 import es.sistedes.library.manager.dspace.model.DSPublication;
 import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
@@ -92,6 +94,10 @@ class PublishEditionCommand implements Callable<Integer> {
 
 	@Option(names = { "-a", "--admin-only" }, description = "Publish with administrator-only permissions (i.e., hidden to the general public).")
 	private boolean private_ = false;
+	
+	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created communities, "
+			+ "collections and items (i.e., filtermedia, generatecitation, generatebibcitation).")
+	private boolean curate = false;
 
 	private ConferenceData conferenceData;
 	private DSpaceConnection connection;
@@ -131,6 +137,21 @@ class PublishEditionCommand implements Callable<Integer> {
 	
 			// Publish the papers
 			publishTracks(editionCommunity, edition);
+			
+			// @formatter:off
+			if (curate) {
+				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "filtermedia"), 
+						new DSParameter("-i", editionCommunity.getHandle())));
+				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "generatecitation"), 
+						new DSParameter("-i", editionCommunity.getHandle())));
+				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "generatebibcitation"), 
+						new DSParameter("-i", editionCommunity.getHandle())));
+			}
+			// @formatter:on
+
 		} finally {
 			// Save the conference data
 			conferenceData.save(true);
