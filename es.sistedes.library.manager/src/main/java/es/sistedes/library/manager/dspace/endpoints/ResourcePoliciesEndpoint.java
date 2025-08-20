@@ -45,7 +45,7 @@ public class ResourcePoliciesEndpoint extends AbstractHateoas {
 			}
 		};
 		public List<DSResourcePolicy> getAll() {
-			return Collections.unmodifiableList(embedded.getAll());
+			return Collections.unmodifiableList(embedded != null ? embedded.getAll() : Collections.emptyList());
 		}
 	};
 
