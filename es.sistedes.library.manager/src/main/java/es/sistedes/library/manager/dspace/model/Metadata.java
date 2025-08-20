@@ -12,10 +12,9 @@
 package es.sistedes.library.manager.dspace.model;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Metadata {
-	
-	public static DateFormat DATE_FORMAT_SIMPLE_W_HOUR = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	public static DateFormat DATE_FORMAT_SIMPLE = new SimpleDateFormat("yyyy-MM-dd");
-//	public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:00'Z'");
 	
 	@JsonProperty("dc.title")
 	protected List<MetadataEntry> titles = new ArrayList<>();
@@ -271,32 +266,17 @@ public class Metadata {
 		this.rightsUris.add(new MetadataEntry(rightsUri));
 	}
 	
-	public Date getDate() {
-		return datesIssued.stream().findFirst().map(d ->  {
-			try {
-				return DATE_FORMAT_SIMPLE.parse(d.getValue());
-			} catch (ParseException e1) {
-				try {
-					return DATE_FORMAT_SIMPLE_W_HOUR.parse(d.getValue());
-				} catch (ParseException e2) {
-					throw new RuntimeException(e2);
-				}
-			}
-		}).orElse(null);
+	public LocalDate getDate() {
+		return datesIssued.stream().findFirst().map(d -> LocalDate.parse(d.getValue())).orElse(null);
 	}
 
-	@SuppressWarnings("deprecation")
 	@JsonIgnore
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		if (date == null) return;
 		this.datesIssued.clear();
-		if (date.getHours() == 0 && date.getMinutes() == 0) {
-			this.datesIssued.add(new MetadataEntry(DATE_FORMAT_SIMPLE.format(date)));
-		} else {
-			this.datesIssued.add(new MetadataEntry(DATE_FORMAT_SIMPLE_W_HOUR.format(date)));
-		}
+		this.datesIssued.add(new MetadataEntry(date.toString()));
 	}
-
+	
 	public String getIsFormatOf() {
 		return isFormatOf.stream().findFirst().map(e ->  e.getValue()).orElse(null);
 	}

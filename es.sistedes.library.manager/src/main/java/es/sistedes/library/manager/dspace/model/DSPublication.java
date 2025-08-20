@@ -11,14 +11,12 @@
 
 package es.sistedes.library.manager.dspace.model;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -132,11 +130,11 @@ public class DSPublication extends DSItem {
 		this.metadata.setRightsUri(uri);
 	}
 
-	public Date getDate() {
+	public LocalDate getDate() {
 		return this.metadata.getDate();
 	}
 
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		this.metadata.setDate(date);
 	}
 
@@ -254,11 +252,8 @@ public class DSPublication extends DSItem {
 		}
 		if (document.getSignatures().stream().filter(s -> StringUtils.isNotEmpty(s.getAffiliation())).count() > 0) {
 			result.setContributorsAffiliations(document.getSignatures().stream().map(s -> StringUtils.defaultIfEmpty(s.getFullAffiliation(), "")).toList());
-		}		try {
-			result.setDate(new SimpleDateFormat("yyyy-MM-dd").parse(edition.getDate()));
-		} catch (ParseException e) {
-			logger.error("Unable to parse date: " + edition.getDate());
 		}
+		result.setDate(LocalDate.parse(edition.getDate()));
 
 		return dsRoot.getItemsEndpoint().createPublication(result, parent);
 	}

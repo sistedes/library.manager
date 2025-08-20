@@ -11,8 +11,7 @@
 
 package es.sistedes.library.manager.dspace.model;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -181,14 +180,14 @@ public class DSCollection extends AbstractHateoas {
 	/**
 	 * @return the creation date
 	 */
-	public Date getDate() {
+	public LocalDate getDate() {
 		return this.metadata.getDate();
 	}
 	
 	/**
 	 * @param date the creation date
 	 */
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		this.metadata.setDate(date);
 	}
 	
@@ -198,7 +197,7 @@ public class DSCollection extends AbstractHateoas {
 		result.setSistedesIdentifier(track.getSistedesHandle());
 		result.setAbstract(track.getAbstract().replaceAll("<(\\S+)>(.*?)</\\1>", "$2"));
 		result.setDescription(track.getAbstract());
-		result.setDate(Calendar.getInstance().getTime());
+		result.setDate(LocalDate.now());
 		return dsRoot.getCollectionsEndpoint().createCollection(result, parent);
 	}
 }
