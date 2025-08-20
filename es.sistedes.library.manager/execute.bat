@@ -32,14 +32,13 @@ CALL execute.env.bat
 CALL mvn package
 
 IF "%1"=="init" GOTO INIT
+IF "%1"=="list" GOTO LIST
 IF "%1"=="sync-authors" GOTO SYNC_AUTHORS
 IF "%1"=="publish" GOTO PUBLISH
-IF "%1"=="register-handles" GOTO REGISTER_HANDLES
-IF "%1"=="dump-handles-batch" GOTO DUMP_HANDLES_BATCH
 IF "%1"=="validate" GOTO VALIDATE
 
 ECHO ERROR: Must provide exactly one of the following subcommands:
-ECHO init, sync-authors, publish, validate
+ECHO init, list, sync-authors, publish, validate
 
 GOTO END
 
@@ -50,22 +49,41 @@ SET COMMON_OPTS=init -y %YEAR% -P %HANDLE_PREFIX%
 CALL java -jar target/%JAR% %COMMON_OPTS% -a %JISBD% -i "%INPUT_DIR%/%JISBD%" -o "%OUTPUT_DIR%/%JISBD%" -p %JISBD_PDF_PATTERN% -x %JISBD_XLSX% %JISBD_INIT_ARGS%
 CALL java -jar target/%JAR% %COMMON_OPTS% -a %JCIS%  -i "%INPUT_DIR%/%JCIS%"  -o "%OUTPUT_DIR%/%JCIS%"  -p  %JCIS_PDF_PATTERN% -x %JCIS_XLSX%  %JCIS_INIT_ARGS%
 CALL java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OUTPUT_DIR%/%PROLE%" -p %PROLE_PDF_PATTERN% -x %PROLE_XLSX% %PROLE_INIT_ARGS%
+@ECHO OFF
 GOTO END
 
+:LIST
+SET COMMON_OPTS=list -t -n -e -o
+@ECHO ON
+CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
+CALL java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%
+CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
+GOTO END
+
+
 :SYNC_AUTHORS
+ECHO WARNING! WARNING!
+CHOICE /C YN /M "We're going to modify %DS_URI%. Continue?"
+IF ERRORLEVEL 2 GOTO ABORT
 SET COMMON_OPTS=sync-authors -i -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
 @ECHO ON
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
+CALL java -jar target/%JAR% curate-authors -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%
+@ECHO OFF
 GOTO END
 
 :PUBLISH
-SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
+ECHO WARNING! WARNING!
+CHOICE /C YN /M "We're going to modify %DS_URI%. Continue?"
+IF ERRORLEVEL 2 GOTO ABORT
+SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a -c
 @ECHO ON
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
+@ECHO OFF
 GOTO END
 
 :VALIDATE
@@ -74,6 +92,9 @@ SET COMMON_OPTS=validate
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%
 CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
+@ECHO OFF
 GOTO END
 
+:ABORT
+ECHO Aborting!
 :END
