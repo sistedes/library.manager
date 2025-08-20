@@ -34,7 +34,7 @@
 		<commons-text.version>1.10.0</commons-text.version>
 		<poi.version>5.2.3</poi.version>
 		<handle.version>9.3.0</handle.version>
-		<jtidy.version>r938</jtidy.version>
+		<jtidy.version>1.0.5</jtidy.version>
 		<markdown4j.version>2.2-cj-1.1</markdown4j.version>
 		<flying-saucer-pdf.version>9.1.22</flying-saucer-pdf.version>
 		<pdfbox.version>2.0.29</pdfbox.version>
@@ -120,7 +120,7 @@
 			<version>${handle.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>net.sf.jtidy</groupId>
+			<groupId>com.github.jtidy</groupId>
 			<artifactId>jtidy</artifactId>
 			<version>${jtidy.version}</version>
 		</dependency>
