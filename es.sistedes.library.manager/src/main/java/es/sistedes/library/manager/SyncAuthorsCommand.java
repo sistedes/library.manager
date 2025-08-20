@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,7 @@ import com.simplenamematcher.SimpleNameMatcher;
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.DSpaceConnectionManager.DSpaceConnection;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
+import es.sistedes.library.manager.dspace.model.DSProcess.DSParameter;
 import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.proceedings.model.Author;
@@ -95,6 +97,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	@Option(names = { "-a", "--admin-only" }, description = "Create new authors with administrator-only permissions (i.e., hidden to the general public).")
 	private boolean private_ = false;
 
+	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created Authors (e.g., generate 'dc.title')")
+	private boolean curate = false;
+	
 	private ConferenceData conferenceData;
 	private DSpaceConnection connection;
 	private DSRoot dsRoot;
@@ -110,11 +115,19 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			for (Author author : conferenceData.getAuthors().values()) {
 				syncAuthor(author);
 			}
+			// @formatter:off
+			if (curate) {
+				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "refreshsistedesauthortitle"), 
+						new DSParameter("-i", "11705/2")));
+			}
+			// @formatter:on
 		} finally {
 			if (!dryRun) {
 				conferenceData.save(true);
 			}
 		}
+		
 		// Return success
 		return 0;
 	}
