@@ -109,6 +109,16 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);
 
+		if (!ValidateCommand.validateAuthorsAreLatin(conferenceData)) {
+			System.err.println("ERROR: Some authors signatures contains invalid characters. Correct them first!");
+			return 1;
+		}
+		
+		if (!ValidateCommand.validateAuthorsConsistentOrcids(conferenceData)) {
+			System.err.println("ERROR: Some authors signatures contains invalid characters. Correct them first!");
+			return 1;
+		}
+		
 		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 		

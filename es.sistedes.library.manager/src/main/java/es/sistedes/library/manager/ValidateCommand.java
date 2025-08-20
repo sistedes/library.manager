@@ -17,7 +17,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +90,21 @@ class ValidateCommand implements Callable<Integer> {
 					isValid.set(false);
 				}
 			});
+		});
+		return isValid.get();
+	}
+	
+	public static boolean validateAuthorsConsistentOrcids(ConferenceData conferenceData) {
+		final AtomicBoolean isValid = new AtomicBoolean(true);
+		conferenceData.getAuthors().values().stream().forEach(author -> {
+			ListValuedMap<String, Integer> orcids = new ArrayListValuedHashMap<>();
+			author.getSignatures().stream().filter(signature -> StringUtils.isNotBlank(signature.getOrcid()))
+						.forEach(signature -> orcids.putAll(StringUtils.toRootLowerCase(signature.getOrcid()), signature.getSubmissions()));
+			if (orcids.asMap().size() > 1) {
+				logger.error(MessageFormat.format("Author ''{0}'' has {1} different ORCIDs: {2}", author.getId(), orcids.asMap().size(),
+						orcids.asMap().entrySet().stream().map(e -> e.getKey()).collect(Collectors.joining("; "))));
+				isValid.set(false);
+			}
 		});
 		return isValid.get();
 	}
