@@ -54,6 +54,10 @@ class ListCommand implements Callable<Integer> {
 	@Option(names = { "-e",
 			"--authors-with-different-emails" }, description = "List the authors that have more than one different e-mail in his/her signature.")
 	private boolean authorsWithDifferentEmails = false;
+	
+	@Option(names = { "-o",
+	"--authors-with-different-orcids" }, description = "List the authors that have more than one different ORCID in his/her signature.")
+	private boolean authorsWithDifferentOrcids = false;
 
 	private ConferenceData conferenceData;
 
@@ -64,6 +68,7 @@ class ListCommand implements Callable<Integer> {
 		if (paperTitles) listPaperTitles(conferenceData);
 		if (authorsWithDifferentNames) listAuthorsWithDifferentNames(conferenceData);
 		if (authorsWithDifferentEmails) listAuthorsWithDifferentEmails(conferenceData);
+		if (authorsWithDifferentOrcids) listAuthorsWithDifferentOrcids(conferenceData);
 		
 		// Return success
 		return 0;
@@ -93,6 +98,18 @@ class ListCommand implements Callable<Integer> {
 			if (emails.asMap().size() > 1) {
 				System.out.println(MessageFormat.format("Author ''{0}'' has {1} different e-mails: {2}", author.getId(), emails.asMap().size(),
 						emails.asMap().entrySet().stream().map(e -> e.getKey()).collect(Collectors.joining("; "))));
+			}
+		});
+	}
+	
+	public static void listAuthorsWithDifferentOrcids(ConferenceData conferenceData) {
+		conferenceData.getAuthors().values().stream().forEach(author -> {
+			ListValuedMap<String, Integer> orcids = new ArrayListValuedHashMap<>();
+			author.getSignatures().stream().filter(signature -> StringUtils.isNotBlank(signature.getOrcid()))
+						.forEach(signature -> orcids.putAll(StringUtils.toRootLowerCase(signature.getOrcid()), signature.getSubmissions()));
+			if (orcids.asMap().size() > 1) {
+				System.out.println(MessageFormat.format("Author ''{0}'' has {1} different ORCIDs: {2}", author.getId(), orcids.asMap().size(),
+						orcids.asMap().entrySet().stream().map(e -> e.getKey()).collect(Collectors.joining("; "))));
 			}
 		});
 	}
