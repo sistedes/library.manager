@@ -47,7 +47,7 @@ public class Author {
 		} if (orcids.size() == 1) {
 			return orcids.stream().findAny().get();
 		} else {
-			throw new RuntimeException("Authors information is inconsistent! More than one Sistedesd UUID has been associated to author with id " + id);
+			throw new RuntimeException("Authors information is inconsistent! More than one ORCID has been associated to author with id " + id);
 		}
 	}
 
