@@ -20,15 +20,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import es.sistedes.library.manager.proceedings.model.AbstractProceedingsDocument;
 import es.sistedes.library.manager.proceedings.model.Edition;
 
 public class DSPublication extends DSItem {
-
-	private static final Logger logger = LoggerFactory.getLogger(DSPublication.class);
 
 	public String getPublicationType() {
 		return metadata.getType();
