@@ -21,8 +21,8 @@ REM problems when trying to read from stdin (and moreover, there seems to
 REM be some issue with the "javax.management.MBeanTrustPermission" permission
 REM and Ant which causes exceptions in some cases).
 REM
-REM As a consequence, we use this script as a simple but fair enough solution to
-REM run all the required commands in an automated and easy way.
+REM As a cons==ence, we use this script as a simple but fair enough solution to
+REM run all the r==ired commands in an automated and easy way.
 REM
 
 setlocal
@@ -45,61 +45,61 @@ GOTO END
 
 :INIT
 SET COMMON_OPTS=init -y %YEAR% -P %HANDLE_PREFIX%
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %JISBD% -i "%INPUT_DIR%/%JISBD%" -o "%OUTPUT_DIR%/%JISBD%" -p %JISBD_PDF_PATTERN% -x %JISBD_XLSX% %JISBD_INIT_ARGS%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %JCIS%  -i "%INPUT_DIR%/%JCIS%"  -o "%OUTPUT_DIR%/%JCIS%"  -p  %JCIS_PDF_PATTERN% -x %JCIS_XLSX%  %JCIS_INIT_ARGS%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OUTPUT_DIR%/%PROLE%" -p %PROLE_PDF_PATTERN% -x %PROLE_XLSX% %PROLE_INIT_ARGS%
-IF ERROLEVEL NEQ 0 GOTO FAIL
+ECHO Initializing JISBD
+java -jar target/%JAR% %COMMON_OPTS% -a %JISBD% -i "%INPUT_DIR%/%JISBD%" -o "%OUTPUT_DIR%/%JISBD%" -p %JISBD_PDF_PATTERN% -x %JISBD_XLSX% %JISBD_INIT_ARGS% || GOTO FAIL
+ECHO Initializing JCIS
+java -jar target/%JAR% %COMMON_OPTS% -a %JCIS%  -i "%INPUT_DIR%/%JCIS%"  -o "%OUTPUT_DIR%/%JCIS%"  -p  %JCIS_PDF_PATTERN% -x %JCIS_XLSX%  %JCIS_INIT_ARGS%  || GOTO FAIL
+ECHO Initializing PROLE
+java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OUTPUT_DIR%/%PROLE%" -p %PROLE_PDF_PATTERN% -x %PROLE_XLSX% %PROLE_INIT_ARGS% || GOTO FAIL
 GOTO END
 
 :LIST
 SET COMMON_OPTS=list -t -n -e -o
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
+ECHO Listing JISBD
+java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
+ECHO Listing JCIS
+java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%  || GOTO FAIL
+ECHO Listing PROLE
+java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
 GOTO END
 
 
 :SYNC_AUTHORS
 ECHO WARNING! WARNING!
 CHOICE /C YN /M "We're going to modify %DS_URI%. Continue?"
-IF ERRORLEVEL 2 GOTO ABORT
+IF %ERRORLEVEL% == 2 GOTO ABORT
 SET COMMON_OPTS=sync-authors -i -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% curate-authors -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%
-IF ERROLEVEL NEQ 0 GOTO FAIL
+ECHO Synchronizing JISBD authors 
+java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%                      || GOTO FAIL
+ECHO Synchronizing JCIS authors 
+java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%                      || GOTO FAIL
+ECHO Synchronizing PROLE authors 
+java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%                      || GOTO FAIL
+ECHO Curating all authors 
+java -jar target/%JAR% curate-authors -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD%  || GOTO FAIL
 GOTO END
 
 :PUBLISH
 ECHO WARNING! WARNING!
 CHOICE /C YN /M "We're going to modify %DS_URI%. Continue?"
-IF ERRORLEVEL 2 GOTO ABORT
+IF %ERRORLEVEL% == 2 GOTO ABORT
 SET COMMON_OPTS=publish -u %DS_URI% -e %DS_EMAIL% -p %DS_PASSWORD% -a -c
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
+ECHO Publishing JISBD proceedings 
+java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
+ECHO Publishing JCIS proceedings
+java -jar target/%JAR% %COMMON_OPTS% -f  %JCIS_EDITION_FILE% || GOTO FAIL
+ECHO Publishing PROLE proceedings 
+java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
 GOTO END
 
 :VALIDATE
 SET COMMON_OPTS=validate
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
-CALL java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE%
-IF ERROLEVEL NEQ 0 GOTO FAIL
+ECHO Validating JISBD 
+java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
+ECHO Validating JCIS 
+java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%  || GOTO FAIL
+ECHO Validating PROLE 
+java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
 GOTO END
 
 :FAIL
