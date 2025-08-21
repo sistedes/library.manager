@@ -82,9 +82,6 @@ class PublishEditionCommand implements Callable<Integer> {
 	@Option(names = { "-u", "--uri" }, paramLabel = "URI", required = true, description = "URI of the root endpoint of the DSpace API.")
 	private URI uri;
 
-	@Option(names = { "-F", "--force" }, description = "Force execution, even if elements have been already created or if validation errors exist.")
-	private boolean force = false;
-
 	@Option(names = { "-e",
 			"--email" }, paramLabel = "E-MAIL", required = true, description = "E-mail of the account required to log in the Sistedes Digital Library to create the authors.")
 	private String email;
@@ -108,11 +105,9 @@ class PublishEditionCommand implements Callable<Integer> {
 		conferenceData = new ConferenceData(editionFile);
 		
 		if (!ValidateCommand.validateAuthorsHaveSistedesId(conferenceData)) {
-			if (!force) {
-				System.err.println("ERROR: Some authors are not in sync with the Sistedes Digital Library. Execute the 'sync-authors' command first.");
-				mainCmd.spec.subcommands().get("sync-authors").getCommandSpec().commandLine().usage(System.err);
-				return 1;
-			}
+			System.err.println("ERROR: Some authors are not in sync with the Sistedes Digital Library. Execute the 'sync-authors' command first.");
+			mainCmd.spec.subcommands().get("sync-authors").getCommandSpec().commandLine().usage(System.err);
+			return 1;
 		}
 
 		connection = DSpaceConnectionManager.createConnection(uri, email, password);
@@ -176,7 +171,7 @@ class PublishEditionCommand implements Callable<Integer> {
 		for (Preliminaries prelim : conferenceData.getPreliminaries()) {
 			// Create the preliminaries only if it has not been created yet (or if we're
 			// running in forced mode)
-			if (StringUtils.isEmpty(prelim.getSistedesUuid()) || force) {
+			if (StringUtils.isEmpty(prelim.getSistedesUuid())) {
 				logger.debug(MessageFormat.format("Creating publication for preliminaries ''{0}''", prelim.getTitle()));
 				DSPublication dsPublication = DSPublication.createPublication(dsRoot, preliminariesCollection, edition, prelim);
 				prelim.setSistedesUuid(dsPublication.getUuid());
@@ -218,7 +213,7 @@ class PublishEditionCommand implements Callable<Integer> {
 				Submission submission = conferenceData.getSubmissions().get(submissionId);
 				// Create the submission only if it has not been created yet (or if we're
 				// running in forced mode)
-				if (StringUtils.isEmpty(submission.getSistedesUuid()) || force) {
+				if (StringUtils.isEmpty(submission.getSistedesUuid())) {
 					logger.debug(MessageFormat.format("Creating publication for ''{0}''", submission.getTitle()));
 					DSPublication dsPublication = DSPublication.createPublication(dsRoot, trackCollection, edition, submission);
 					submission.setSistedesUuid(dsPublication.getUuid());
@@ -278,7 +273,7 @@ class PublishEditionCommand implements Callable<Integer> {
 
 	private DSCommunity getOrCreateEditionCommunity(DSCommunity conferenceCommunity, Edition edition) {
 		DSCommunity editionCommunity = null;
-		if (StringUtils.isEmpty(edition.getSistedesUuid()) || force) {
+		if (StringUtils.isEmpty(edition.getSistedesUuid())) {
 			logger.debug(MessageFormat.format("Creating community for ''{0}''", edition.getShortName()));
 			editionCommunity = DSCommunity.createSubCommunity(dsRoot, conferenceCommunity, edition);
 			edition.setSistedesUuid(editionCommunity.getUuid());
@@ -293,7 +288,7 @@ class PublishEditionCommand implements Callable<Integer> {
 
 	private DSCollection getOrCreatePreliminariesCollection(DSCommunity editionCommunity, Edition edition) {
 		DSCollection preliminariesCollection;
-		if (StringUtils.isEmpty(edition.getPreliminariesSistedesUuid()) || force) {
+		if (StringUtils.isEmpty(edition.getPreliminariesSistedesUuid())) {
 			Track preliminaries = new Track();
 			// @formatter:off
 			preliminaries.setName("Preliminares");
@@ -318,7 +313,7 @@ class PublishEditionCommand implements Callable<Integer> {
 
 	private DSCollection getOrCreateTrackCollection(DSCommunity editionCommunity, Track track) {
 		DSCollection trackCollection;
-		if (StringUtils.isEmpty(track.getSistedesUuid()) || force) {
+		if (StringUtils.isEmpty(track.getSistedesUuid())) {
 			logger.debug(MessageFormat.format("Creating collection for ''{0}''", track.getName()));
 			trackCollection = DSCollection.createCollection(dsRoot, editionCommunity, track);
 			track.setSistedesUuid(trackCollection.getUuid());
