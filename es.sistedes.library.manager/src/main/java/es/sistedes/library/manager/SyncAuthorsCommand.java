@@ -99,10 +99,21 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
+	volatile private boolean saved = false;
+	
 	@Override
 	public Integer call() throws Exception {
-		conferenceData = new ConferenceData(editionFile);
 
+		conferenceData = new ConferenceData(editionFile);
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			// Make sure changes are saved!
+			if (!saved && !dryRun) {
+				logger.info("Saving conference data before shutting down...");
+				conferenceData.save();
+				logger.info("Conference data saved!");
+			}
+		}));
+		
 		if (!ValidateCommand.validateAuthorsAreLatin(conferenceData)) {
 			System.err.println("ERROR: Some authors signatures contains invalid characters. Correct them first!");
 			return 1;
@@ -129,7 +140,11 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			// @formatter:on
 		} finally {
 			if (!dryRun) {
+				// Save the conference data
+				logger.info("Saving conference data...");
 				conferenceData.save();
+				saved = true;
+				logger.info("Conference data saved!");
 			}
 		}
 		

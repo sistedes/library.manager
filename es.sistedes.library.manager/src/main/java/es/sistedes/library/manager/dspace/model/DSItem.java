@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import es.sistedes.library.manager.DSpaceConnectionManager;
 import es.sistedes.library.manager.dspace.endpoints.ItemBundlesEndpoint;
+import es.sistedes.library.manager.dspace.endpoints.ItemRelationshipsEndpoint;
 
 public class DSItem extends AbstractHateoas {
 
@@ -217,6 +218,17 @@ public class DSItem extends AbstractHateoas {
 		return getBundle(ORIGINAL_BUNDLE);
 	}
 
+	public List<DSRelationship> getRelationships() {
+		// @formatter:off
+		return DSpaceConnectionManager
+				.buildClient(getLinkUri("relationships").get())
+				.get()
+				.retrieve()
+				.bodyToMono(ItemRelationshipsEndpoint.class)
+				.block().getAll();
+		// @formatter:on
+	}
+
 	protected Optional<DSBundle> getBundle(String name) {
 		// @formatter:off
 		return DSpaceConnectionManager
@@ -227,7 +239,6 @@ public class DSItem extends AbstractHateoas {
 				.block().getBundle(name);
 		// @formatter:on
 	}
-
 
 	protected DSBundle createBundle(DSBundle bundle) {
 		// @formatter:off

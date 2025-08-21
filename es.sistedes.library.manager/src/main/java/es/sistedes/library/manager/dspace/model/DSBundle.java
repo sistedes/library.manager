@@ -11,6 +11,8 @@
 
 package es.sistedes.library.manager.dspace.model;
 
+import java.util.List;
+
 import org.springframework.core.io.AbstractResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -19,6 +21,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.sistedes.library.manager.DSpaceConnectionManager;
+import es.sistedes.library.manager.dspace.endpoints.BitstreamsEndpoint;
 
 public class DSBundle extends AbstractHateoas {
 
@@ -71,6 +74,18 @@ public class DSBundle extends AbstractHateoas {
 				.retrieve()
 				.bodyToMono(DSBitstream.class)
 				.block();
+		// @formatter:on
+	}
+	
+	public List<DSBitstream> getBitstreams() {
+		// @formatter:off
+		return DSpaceConnectionManager
+				.buildClient(getLinkUri("bitstreams").get())
+				.get()
+				.retrieve()
+				.bodyToMono(BitstreamsEndpoint.class)
+				.block()
+				.getAll();
 		// @formatter:on
 	}
 }

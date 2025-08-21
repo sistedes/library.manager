@@ -100,9 +100,20 @@ class PublishEditionCommand implements Callable<Integer> {
 	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
+	volatile private boolean saved = false;
+	
 	@Override
 	public Integer call() throws Exception {
+
 		conferenceData = new ConferenceData(editionFile);
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			// Make sure changes are saved!
+			if (!saved) {
+				logger.info("Saving conference data before shutting down...");
+				conferenceData.save();
+				logger.info("Conference data saved!");
+			}
+		}));
 		
 		if (!ValidateCommand.validateAuthorsHaveSistedesId(conferenceData)) {
 			System.err.println("ERROR: Some authors are not in sync with the Sistedes Digital Library. Execute the 'sync-authors' command first.");
@@ -152,7 +163,10 @@ class PublishEditionCommand implements Callable<Integer> {
 
 		} finally {
 			// Save the conference data
+			logger.info("Saving conference data...");
 			conferenceData.save();
+			saved = true;
+			logger.info("Conference data saved!");
 		}
 
 		// Return success
@@ -169,26 +183,25 @@ class PublishEditionCommand implements Callable<Integer> {
 
 		// Start iterating over the preliminaries
 		for (Preliminaries prelim : conferenceData.getPreliminaries()) {
-			// Create the preliminaries only if it has not been created yet (or if we're
-			// running in forced mode)
+			DSPublication dsPublication = null;
 			if (StringUtils.isEmpty(prelim.getSistedesUuid())) {
+				// Create the preliminaries only if it has not been created yet
 				logger.debug(MessageFormat.format("Creating publication for preliminaries ''{0}''", prelim.getTitle()));
-				DSPublication dsPublication = DSPublication.createPublication(dsRoot, preliminariesCollection, edition, prelim);
+				dsPublication = DSPublication.createPublication(dsRoot, preliminariesCollection, edition, prelim);
 				prelim.setSistedesUuid(dsPublication.getUuid());
 				prelim.setInternalHandle(dsPublication.getHandle());
-				logger.info(MessageFormat.format("Created publication for preliminaries ''{0}'' with UUID ''{1}''", dsPublication.getName(),
-						dsPublication.getUuid()));
-				uploadPublicationBitstreams(prelim, dsPublication);
-				
+				logger.info(MessageFormat.format("Created publication for preliminaries ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
 				// If private, delete all READ permissions
 				if (private_) {
 					deleteReadResourcePolicies(dsPublication.getUuid());
 				}
 			} else {
-				logger.info(MessageFormat.format("Publication for ''{0}'' already exists UUID ''{1}'', skipping...", prelim.getTitle(), prelim.getSistedesUuid()));
+				dsPublication = dsRoot.getItemsEndpoint().getPublication(prelim.getSistedesUuid()).orElseThrow();
+				logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", prelim.getTitle(), prelim.getSistedesUuid()));
 			}
-		}
 
+			managePublicationBitstreams(prelim, dsPublication);
+		}
 	}
 
 	private void publishTracks(DSCommunity editionCommunity, Edition edition) {
@@ -211,43 +224,57 @@ class PublishEditionCommand implements Callable<Integer> {
 			// Start iterating over the submissions
 			for (int submissionId : track.getSubmissions()) {
 				Submission submission = conferenceData.getSubmissions().get(submissionId);
-				// Create the submission only if it has not been created yet (or if we're
-				// running in forced mode)
+				DSPublication dsPublication;
 				if (StringUtils.isEmpty(submission.getSistedesUuid())) {
+					// Create the submission only if it has not been created yet 
 					logger.debug(MessageFormat.format("Creating publication for ''{0}''", submission.getTitle()));
-					DSPublication dsPublication = DSPublication.createPublication(dsRoot, trackCollection, edition, submission);
+					dsPublication = DSPublication.createPublication(dsRoot, trackCollection, edition, submission);
 					submission.setSistedesUuid(dsPublication.getUuid());
 					submission.setInternalHandle(dsPublication.getHandle());
 					logger.info(MessageFormat.format("Created publication for ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
-					createSubmissionAuthorships(submission, dsPublication);
-					uploadPublicationBitstreams(submission, dsPublication);
-
 					// If private, delete all READ permissions
 					if (private_) {
 						deleteReadResourcePolicies(dsPublication.getUuid());
 					}
 				} else {
-					logger.info(MessageFormat.format("Publication for ''{0}'' already exists UUID ''{1}'', skipping...", submission.getTitle(),
+					dsPublication = dsRoot.getItemsEndpoint().getPublication(submission.getSistedesUuid()).orElseThrow();
+					logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", submission.getTitle(),
 							submission.getSistedesUuid()));
+				}
+				manageSubmissionAuthorships(submission, dsPublication);
+				managePublicationBitstreams(submission, dsPublication);
+			}
+		}
+	}
+
+	private void manageSubmissionAuthorships(Submission submission, DSPublication dsPublication) {
+		if (dsPublication.getRelationships().size() == submission.getSignatures().size()) {
+			logger.info(MessageFormat.format("Authors for submission ''{0}'' ({1}) are already registered, skipping...", submission.getId(), submission.getTitle()));
+		} else if (dsPublication.getRelationships().size() > submission.getSignatures().size()) {
+			throw new RuntimeException(
+					MessageFormat.format("Submission ''{0}'' ({1}) has more relationships than signatures!", submission.getId(), submission.getTitle()));
+		} else {
+			for (Signature signature : submission.getSignatures()) {
+				logger.debug(MessageFormat.format("Creating authorship for ''{0}''", signature));
+				DSAuthor dsAuthor = dsRoot.getItemsEndpoint().getAuthor(signature.getSistedesUuid()).orElseThrow();
+				if (dsPublication.getRelationships().stream().noneMatch(r -> dsAuthor.getSelfUri().equals(r.getLinkUri("rightItem")))) { 
+					if (submission.getType().getPublicationType() == DSItem.Type.ABSTRACT) {
+						dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfAbstractRelationship(), dsPublication, dsAuthor);
+					} else if (submission.getType().getPublicationType() == DSItem.Type.PAPER) {
+						dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfPaperRelationship(), dsPublication, dsAuthor);
+					} else {
+						throw new RuntimeException(MessageFormat.format("Unexpected type of publication ''{0}'' in submission ''{1}''",
+								submission.getType().getPublicationType(), submission.getId()));
+					}
+					logger.info(MessageFormat.format("Created authorship for ''{0}''", signature));
 				}
 			}
 		}
 	}
 
-	private void createSubmissionAuthorships(Submission submission, DSPublication dsPublication) {
-		for (Signature signature : submission.getSignatures()) {
-			logger.debug(MessageFormat.format("Creating authorship for ''{0}''", signature));
-			DSAuthor dsAuthor = dsRoot.getItemsEndpoint().getAuthor(signature.getSistedesUuid()).orElseThrow();
-			if (submission.getType().getPublicationType() == DSItem.Type.ABSTRACT) {
-				dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfAbstractRelationship(), dsPublication, dsAuthor);
-			} else {
-				dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfPaperRelationship(), dsPublication, dsAuthor);
-			}
-			logger.info(MessageFormat.format("Created authorship for ''{0}''", signature));
-		}
-	}
+	private void managePublicationBitstreams(AbstractProceedingsDocument document, DSPublication dsPublication) {
+		DSBundle originalBundle = dsPublication.getOriginalBundle().orElse(dsPublication.createOriginalBundle());
 
-	private void uploadPublicationBitstreams(AbstractProceedingsDocument document, DSPublication dsPublication) {
 		File originalFile = new File(editionFile.getParent(), document.getFilename());
 		File otherFile = null;
 		if (FilenameUtils.getExtension(originalFile.getAbsolutePath()).equals("md")) {
@@ -257,17 +284,31 @@ class PublishEditionCommand implements Callable<Integer> {
 			originalFile = pdfFile;
 		}
 
-		DSBundle originalBundle = dsPublication.getOriginalBundle().orElse(dsPublication.createOriginalBundle());
-		logger.debug(MessageFormat.format("Uploading main file ''{0}''", originalFile));
-		originalBundle.createBitstreamFrom(new FileSystemResource(originalFile),
-				document.getSistedesHandle().replaceAll("/", "-") + "." + FilenameUtils.getExtension(originalFile.getAbsolutePath()));
-		logger.info(MessageFormat.format("Uploaded main file ''{0}''", originalFile));
+		if (originalBundle.getBitstreams().size() == 1) {
+			logger.info(MessageFormat.format("Main file for submission ''{0}'' ({1}) is already uploaded, skipping...", document.getId(), document.getTitle()));	
+		} else if (originalBundle.getBitstreams().size() > 1) {
+			throw new RuntimeException(
+					MessageFormat.format("Submission ''{0}'' ({1}) has more than one ORIGINAL bitstream!", document.getId(), document.getTitle()));
+		} else {
+			logger.debug(MessageFormat.format("Uploading main file ''{0}''", originalFile));
+			originalBundle.createBitstreamFrom(new FileSystemResource(originalFile),
+					document.getSistedesHandle().replaceAll("/", "-") + "." + FilenameUtils.getExtension(originalFile.getAbsolutePath()));
+			logger.info(MessageFormat.format("Uploaded main file ''{0}''", originalFile));
+		}
+		
 		if (otherFile != null) {
-			logger.debug(MessageFormat.format("Uploading alternative file ''{0}''", otherFile));
 			DSBundle otherBundle = dsPublication.getOtherBundle().orElse(dsPublication.createOtherBundle());
-			otherBundle.createBitstreamFrom(new FileSystemResource(otherFile),
-					document.getSistedesHandle().replaceAll("/", "-") + "." + FilenameUtils.getExtension(otherFile.getAbsolutePath()));
-			logger.info(MessageFormat.format("Uploaded alternative file ''{0}''", otherFile));
+			if (otherBundle.getBitstreams().size() == 1) {
+				logger.info(MessageFormat.format("Alternative file for submission ''{0}'' ({1}) is already uploaded, skipping...", document.getId(), document.getTitle()));	
+			} else if (otherBundle.getBitstreams().size() > 1) {
+				throw new RuntimeException(
+						MessageFormat.format("Submission ''{0}'' ({1}) has more than one OTHER bitstream!", document.getId(), document.getTitle()));
+			} else {
+				logger.debug(MessageFormat.format("Uploading alternative file ''{0}''", otherFile));
+				otherBundle.createBitstreamFrom(new FileSystemResource(otherFile),
+						document.getSistedesHandle().replaceAll("/", "-") + "." + FilenameUtils.getExtension(otherFile.getAbsolutePath()));
+				logger.info(MessageFormat.format("Uploaded alternative file ''{0}''", otherFile));
+			}
 		}
 	}
 

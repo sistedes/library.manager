@@ -26,6 +26,10 @@ public class ItemsEndpoint extends AbstractPageableResponse {
 	public Optional<DSAuthor> getAuthor(String uuid) {
 		return getItem(DSAuthor.class, uuid);
 	}
+	
+	public Optional<DSPublication> getPublication(String uuid) {
+		return getItem(DSPublication.class, uuid);
+	}
 
 	protected <T> Optional<T> getItem(Class<T> clazz, String uuid) {
 		T item = DSpaceConnectionManager.buildClient(getSelfUri()).get().uri(uriBuilder -> uriBuilder.pathSegment(uuid).build()).retrieve()

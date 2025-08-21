@@ -240,7 +240,7 @@ public class ConferenceData {
 	/**
 	 * Save the conference data to disk. 
 	 */
-	public void save() {
+	public synchronized void save() {
 		// Force load the authors map before saving, just in case it was not initialized yet
 		getAuthors();
 		String prefix = edition.getSistedesHandle().split("/")[0];
