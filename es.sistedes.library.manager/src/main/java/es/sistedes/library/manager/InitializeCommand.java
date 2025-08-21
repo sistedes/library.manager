@@ -76,7 +76,7 @@ class InitializeCommand implements Callable<Integer> {
 	private File inputDir;
 
 	@Option(names = { "-o", "--output" }, paramLabel = "DIR", defaultValue = "",
-			description = "Ouput directory where the generated conference files should be placed.")
+			description = "Ouput directory where the generated conference files should be placed. The directory MUST be empty.")
 	private File outputDir;
 	
 	@Option(names = { "-p", "--pattern" }, paramLabel = "PATTERN", defaultValue = "{acronym}_{year}_paper_{id}.pdf",
@@ -94,22 +94,24 @@ class InitializeCommand implements Callable<Integer> {
 					+ "This parameter may be used as many times as needed.")
 	private String[] papersFormFields;
 
-	@Option(names = { "-F", "--force" }, 
-			description = "Force execution, even if submission files are overwritten.")
-	private boolean force = false;
-	
 
 	@Override
 	public Integer call() throws Exception {
+		if (outputDir.exists() && outputDir.list().length > 0) {
+			logger.error(MessageFormat.format("Directory ''{0}'' is not empty", outputDir));
+			System.err.println("ERROR! The output directory must be empty. Aborting!");
+			return 1;
+		}
+
 		logger.info(MessageFormat.format("Importing EasyChair data from ''{0}''", xslxFile));
-		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, prefix, acronym, year, pattern, force).getData();
+		ConferenceData conferenceData = new EasyChairImporter(xslxFile, inputDir, outputDir, prefix, acronym, year, pattern).getData();
 		
 		for (Submission submission : conferenceData.getSubmissions().values()) {
 			setSubmissionType(submission, Arrays.asList(abstractsFormFields), Arrays.asList(papersFormFields));
 		}
 		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
-		conferenceData.save(force);
+		conferenceData.save();
 
 		// Return success
 		return 0;

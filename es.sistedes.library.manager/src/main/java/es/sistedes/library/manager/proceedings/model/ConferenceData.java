@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,26 +238,23 @@ public class ConferenceData {
 	}
 
 	/**
-	 * Save the conference data to disk. In forced mode, existing files of
-	 * submissions are overwritten. Preliminaries are never overwritten.
-	 * 
-	 * @param force
+	 * Save the conference data to disk. 
 	 */
-	public void save(boolean force) {
+	public void save() {
 		// Force load the authors map before saving, just in case it was not initialized yet
 		getAuthors();
 		String prefix = edition.getSistedesHandle().split("/")[0];
-		saveMetadata(edition, force);
-		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks.values()) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)), force);
+		saveMetadata(edition);
+		saveMetadata(!tracks.isEmpty() ? TracksIndex.from(tracks.values()) : TracksIndex.from(Track.createTemplate(prefix, acronym, year)));
 		if (preliminaries.isEmpty()) {
-			saveMetadata(Preliminaries.createTemplate(prefix, acronym, year), true);
+			saveMetadata(Preliminaries.createTemplate(prefix, acronym, year));
 		} else {
 			preliminaries.stream().forEach(elt -> {
-				saveMetadata(elt, force);
+				saveMetadata(elt);
 			});
 		}
 		submissions.values().stream().forEach(elt -> {
-			saveMetadata(elt, force);
+			saveMetadata(elt);
 		});
 	}
 
@@ -268,14 +264,9 @@ public class ConferenceData {
 	 * @param elt
 	 * @param force
 	 */
-	private void saveMetadata(AbstractProceedingsElement elt, boolean force) {
+	private void saveMetadata(AbstractProceedingsElement elt) {
 		File file = new File(getWorkingDir(), getMetadataFilename(elt).orElseThrow());
-		if (!file.exists() || force) {
-			saveObject(elt, file);
-		} else {
-			logger.warn(MessageFormat.format("File ''{0}'' already exists, skipping...", file));
-		}
-
+		saveObject(elt, file);
 	}
 
 	/**
@@ -285,19 +276,7 @@ public class ConferenceData {
 	 * @param file
 	 */
 	private void saveObject(Object obj, File file) {
-		File target = file;
 		try {
-			for (int i = 0; i < Integer.MAX_VALUE; i++) {
-				if (target.exists()) {
-					target = new File(FilenameUtils.removeExtension(file.getPath()) + ".bak" + i + "." + FilenameUtils.getExtension(file.getName()));
-				} else {
-					break;
-				}
-			}
-			if (file.exists()) {
-				file.renameTo(target);
-				logger.warn(MessageFormat.format("File ''{0}'' exists, creating a backup on ''{1}''", file, target));
-			}
 			mapper.writeValue(file, obj);
 		} catch (IOException e) {
 			logger.error(MessageFormat.format("Unable to write ''{0}''! ({1})", file, e.getLocalizedMessage()));

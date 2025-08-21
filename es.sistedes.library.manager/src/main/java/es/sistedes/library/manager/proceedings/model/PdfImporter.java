@@ -49,8 +49,6 @@ public class PdfImporter implements IConferenceDataImporter {
 
 	private ConferenceData conferenceData;
 	
-	private boolean force;
-	
 	private URL grobidUrl;
 	private String grobidUser;
 	private String grobidPass;
@@ -70,11 +68,9 @@ public class PdfImporter implements IConferenceDataImporter {
 			List<Range<Integer>> frontmatter,
 			List<List<Range<Integer>>> contributions,
 			List<Range<Integer>> backmatter,
-			URL url,
-			boolean force) throws IOException {
+			URL url) throws IOException {
 		
 		this.conferenceData = createConferenceData(outputDir, prefix, acronym, year);
-		this.force = force;
 		this.grobidUrl = new URL(url.getProtocol(), url.getHost(), url.getFile());
 		if (url.getUserInfo() != null && url.getUserInfo().contains(":")) {
 			this.grobidUser = url.getUserInfo().split(":")[0];
@@ -159,12 +155,8 @@ public class PdfImporter implements IConferenceDataImporter {
 			Integer end = pages.get(i).getMaximum();
 			Splitter splitter = createSplitter(start, end);
 			File prelimFile = new File(conferenceData.getWorkingDir(), prelim.getFilename());
-			if (!prelimFile.exists() || force) {
-				logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, prelimFile));
-				splitter.split(document).get(0).save(prelimFile);
-			} else {
-				logger.warn(MessageFormat.format("File ''{0}'' already exists, skipping...", prelimFile));
-			}
+			logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, prelimFile));
+			splitter.split(document).get(0).save(prelimFile);
 			preliminaries.add(prelim);
 		}
 		return preliminaries;
@@ -189,12 +181,8 @@ public class PdfImporter implements IConferenceDataImporter {
 			}
 			Splitter splitter = createSplitter(start, end);
 			File submissionFile = new File(conferenceData.getWorkingDir(), submission.getFilename());
-			if (!submissionFile.exists() || force) {
-				logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, submissionFile));
-				splitter.split(document).get(0).save(submissionFile);
-			} else {
-				logger.warn(MessageFormat.format("File ''{0}'' already exists, skipping...", submissionFile));
-			}
+			logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, submissionFile));
+			splitter.split(document).get(0).save(submissionFile);
 			submissions.add(submission);
 		}
 		return submissions;

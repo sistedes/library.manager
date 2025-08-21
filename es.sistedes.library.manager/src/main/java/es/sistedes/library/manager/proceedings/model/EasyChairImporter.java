@@ -40,12 +40,15 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * {@link InitializeCommand#xslxFile} with the EasyChair dump
 	 * 
 	 * @param xslxFile
-	 * @param sourceDir
+	 * @param inputDir
+	 * @param outputDir
+	 * @param prefix
+	 * @param acronym
+	 * @param year
 	 * @param pattern
-	 * @param force
 	 * @throws IOException
 	 */
-	public EasyChairImporter(File xslxFile, File inputDir, File outputDir, String prefix, String acronym, int year, String pattern, boolean force) throws IOException {
+	public EasyChairImporter(File xslxFile, File inputDir, File outputDir, String prefix, String acronym, int year, String pattern) throws IOException {
 		File editionFile = new File(outputDir, Edition.EDITION_DEFAULT_FILENAME_PATTERN.replace("{acronym}", acronym).replace("{year}", String.valueOf(year)));
 		conferenceData = new ConferenceData(editionFile, prefix, acronym, year);
 		try (Workbook workbook = new XSSFWorkbook(new FileInputStream(xslxFile))) {
@@ -72,7 +75,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 			conferenceData.setSubmissions(readSubmissions(workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.getTracks()));
 			conferenceData.getSubmissions().values().stream().forEach(submission -> {
 				HandleGenerator.generateHandle(submission, prefix, acronym, year).ifPresent(submission::setSistedesHandle);
-				importSubmissionFile(submission, inputDir, pattern, force);
+				importSubmissionFile(submission, inputDir, pattern);
 			});
 		}
 	}
@@ -254,15 +257,11 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * @param pattern
 	 * @param force
 	 */
-	private void importSubmissionFile(Submission submission, File sourceDir, String pattern, boolean force) {
+	private void importSubmissionFile(Submission submission, File sourceDir, String pattern) {
 		String filename = getSourceSubmissionFileName(submission, conferenceData.getEdition().getAcronym(), conferenceData.getEdition().getYear(), pattern);
 		File sourceDoc = sourceDir.toPath().resolve(filename).toFile();
 		File targetDoc = new File(conferenceData.getWorkingDir(), getDataFilename(submission).orElseThrow());
-		if (!targetDoc.exists() || force) {
-			copyData(submission, sourceDoc, targetDoc);
-		} else {
-			logger.warn(MessageFormat.format("File ''{0}'' already exists, skipping...", targetDoc));
-		}
+		copyData(submission, sourceDoc, targetDoc);
 	}
 
 	/**

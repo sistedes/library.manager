@@ -75,10 +75,7 @@ class SplitCommand implements Callable<Integer> {
 			description = "Ouput directory where the generated conference files should be placed.")
 	private File outputDir;
 	
-	@Option(names = { "-F", "--force" }, 
-			description = "Force execution, even if submission files are overwritten.")
-	private boolean force = false;
-	
+
 	private List<Range<Integer>> frontmatter = new ArrayList<>();
 	@Option(names = { "-f", "--frontmatter-pages" }, paramLabel = "PAGES", required = false,
 			description = "Comma-separated list of pages where each frontmatter section starts and optionally, ends, if a range (inclusive) is specified. "
@@ -158,10 +155,10 @@ class SplitCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		logger.info(MessageFormat.format("Splitting file ''{0}''", inputFile));
-		ConferenceData conferenceData = new PdfImporter(inputFile, outputDir, prefix, acronym, year, frontmatter, contributions, backmatter, url, force).getData();
+		ConferenceData conferenceData = new PdfImporter(inputFile, outputDir, prefix, acronym, year, frontmatter, contributions, backmatter, url).getData();
 		
 		logger.info(MessageFormat.format("Saving conference data to ''{0}''", outputDir));
-		conferenceData.save(force);
+		conferenceData.save();
 
 		// Return success
 		return 0;

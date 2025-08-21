@@ -157,7 +157,7 @@ class PublishEditionCommand implements Callable<Integer> {
 
 		} finally {
 			// Save the conference data
-			conferenceData.save(true);
+			conferenceData.save();
 		}
 
 		// Return success

@@ -28,7 +28,6 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.simplenamematcher.SimpleNameMatcher;
 
@@ -53,8 +52,7 @@ import picocli.CommandLine.Spec;
 				+ "and the Sistedes Digital Library, trying to match existing authors in "
 				+ "the library with local authors. In case the authors do not exist in the "
 				+ "library, creates them. Already identified authors will be skipped when "
-				+ "running in normal mode. In forced mode, information about  already identified "
-				+ "authors will be discarded and a new match will be attempted.")
+				+ "running in normal mode.")
 				
 // @formatter:on
 class SyncAuthorsCommand implements Callable<Integer> {
@@ -81,10 +79,6 @@ class SyncAuthorsCommand implements Callable<Integer> {
 
 	@Option(names = { "-r", "--dry-run" }, description = "Do not perform any modifications.")
 	private boolean dryRun = false;
-	
-	@Option(names = { "-F", "--force" }, 
-			description = "Force execution, discarding existing information about identified authors already existing in the Sistedes Digital Library.")
-	private boolean force = false;
 	
 	@Option(names = { "-e",
 	"--email" }, paramLabel = "E-MAIL", required = true, description = "E-mail of the account required to log in the Sistedes Digital Library to create the authors.")
@@ -135,7 +129,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 			// @formatter:on
 		} finally {
 			if (!dryRun) {
-				conferenceData.save(true);
+				conferenceData.save();
 			}
 		}
 		
@@ -147,28 +141,20 @@ class SyncAuthorsCommand implements Callable<Integer> {
 		Optional<DSAuthor> dsAuthorOpt = Optional.empty();
 		
 		if (author.getSistedesUuid() != null) {
-			try {
-				dsAuthorOpt = dsRoot.getItemsEndpoint().getAuthor(author.getSistedesUuid());
-			} catch(WebClientResponseException.NotFound e) {
-				// The Sistedes UUID is invalid!
-				// Discard it, and start over again...
-				logger.error(MessageFormat.format("Unable to find Author with Sistedes UUID ''{0}''...", author.getSistedesUuid()));
-				author.setSistedesUuid(null);
-			}
+			logger.info(MessageFormat.format("Author ''{0}'' has already been processed and has UUID ''{1}'', skipping...", author.getId(), author.getSistedesUuid()));
+			return;
 		}
 		
-		if (author.getSistedesUuid() == null || force) {
-			dsAuthorOpt = findAuthor(author);
-			if (dsAuthorOpt.isPresent()) {
-				author.setSistedesUuid(dsAuthorOpt.get().getUuid());
-				if (StringUtils.equals(dsAuthorOpt.get().getOrcid(), author.getOrcid())) {
-					logger.info(MessageFormat.format("Sistedes UUID ''{0}'' found with ORCID match for ''{1}''", author.getSistedesUuid(), author));
-				} else {
-					logger.info(MessageFormat.format("Sistedes UUID ''{0}'' found for ''{1}''", author.getSistedesUuid(), author));
-				}
+		dsAuthorOpt = findAuthor(author);
+		if (dsAuthorOpt.isPresent()) {
+			author.setSistedesUuid(dsAuthorOpt.get().getUuid());
+			if (StringUtils.equals(dsAuthorOpt.get().getOrcid(), author.getOrcid())) {
+				logger.info(MessageFormat.format("Author with UUID ''{0}'' found with ORCID match for ''{1}''", author.getSistedesUuid(), author));
 			} else {
-				logger.warn(MessageFormat.format("Unable to find a match for ''{0}''", author));
+				logger.info(MessageFormat.format("Author with UUID ''{0}'' found with heuristic match for ''{1}''", author.getSistedesUuid(), author));
 			}
+		} else {
+			logger.warn(MessageFormat.format("Unable to find a match for ''{0}''", author));
 		}
 		
 		if (dryRun) {
@@ -185,67 +171,74 @@ class SyncAuthorsCommand implements Callable<Integer> {
 				logger.info(MessageFormat.format("Created Author for ''{0}''", author));
 			} else {
 				// We may update an existing author
-				boolean updated = false;
-				logger.debug(MessageFormat.format("Updating Author for ''{0}''...", author));
-				DSAuthor dsAuthor = dsAuthorOpt.get();
-				for (Signature signature : author.getSignatures()) {
-					// @formatter:off
-					// Always replace the "main" author name by the latest signature name
-					// if they do not match.
-					// This is because we consider that the author will maintain his/her
-					// latest signature in future editions
-					if (!StringUtils.equals(dsAuthor.getFullName(), signature.getFullName())) {
-						updated = true;
-						// Set the current name as a variant
-						dsAuthor.addNameVariant(dsAuthor.getFullName());
-						// Update the name
-						dsAuthor.setGivenName(signature.getGivenName());
-						dsAuthor.setFamilyName(signature.getFamilyName());
-						dsAuthor.setName(dsAuthor.getFullName());
-						// Make sure that the name we just set is not listed as a variant
-						// which was added in the past
-						dsAuthor.setNameVariants(dsAuthor.getNameVariants().stream().filter(variant -> !variant.equals(dsAuthor.getFullName())).toList());
-					} else if (!StringUtils.equals(
-									StringUtils.stripAccents(dsAuthor.getFullName().toLowerCase()), 
-									StringUtils.stripAccents(signature.getFullName().toLowerCase()))
-								&& !dsAuthor.getNameVariants().contains(signature.getFullName())) {
-						updated = true;
-						dsAuthor.addNameVariant(signature.getFullName());
+				try {
+					boolean updated = false;
+					logger.debug(MessageFormat.format("Updating Author for ''{0}''...", author));
+					DSAuthor dsAuthor = dsAuthorOpt.get();
+					for (Signature signature : author.getSignatures()) {
+						// @formatter:off
+						// Always replace the "main" author name by the latest signature name
+						// if they do not match.
+						// This is because we consider that the author will maintain his/her
+						// latest signature in future editions
+						if (!StringUtils.equals(dsAuthor.getFullName(), signature.getFullName())) {
+							updated = true;
+							// Set the current name as a variant
+							dsAuthor.addNameVariant(dsAuthor.getFullName());
+							// Update the name
+							dsAuthor.setGivenName(signature.getGivenName());
+							dsAuthor.setFamilyName(signature.getFamilyName());
+							dsAuthor.setName(dsAuthor.getFullName());
+							// Make sure that the name we just set is not listed as a variant
+							// which was added in the past
+							dsAuthor.setNameVariants(dsAuthor.getNameVariants().stream().filter(variant -> !variant.equals(dsAuthor.getFullName())).toList());
+						} else if (!StringUtils.equals(
+										StringUtils.stripAccents(dsAuthor.getFullName().toLowerCase()), 
+										StringUtils.stripAccents(signature.getFullName().toLowerCase()))
+									&& !dsAuthor.getNameVariants().contains(signature.getFullName())) {
+							updated = true;
+							dsAuthor.addNameVariant(signature.getFullName());
+						}
+						// @formatter:on
+						// If all existing affiliations are different (90% or less) to the one in the signature, add it to the list
+						// Do the computation ignoring casing, accents, punctuation marks, and normalizing the spaces
+						if (dsAuthor.getAffiliations().stream().allMatch(aff -> { 
+							String affiliation1 = StringUtils.normalizeSpace(StringUtils.stripAccents(aff).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
+							String affiliation2 = StringUtils.normalizeSpace(StringUtils.stripAccents(signature.getFullAffiliation()).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
+							return (SimpleNameMatcher.compareNamesSafe(affiliation1, affiliation2) <= 90);
+							})) {
+							updated = true;
+							dsAuthor.addAffiliation(signature.getFullAffiliation().trim());
+						}
+						// Add the e-mail if it doesn't exist yet
+						if (signature.getEmail() != null
+								&& !dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
+							updated = true;
+							dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
+						}
+						// Add the web if it doesn't exist yet
+						if (signature.getWeb() != null 
+								&& !dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
+							updated = true;
+							dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
+						}
+						// Add the ORCID if it doesn't exist yet
+						if (signature.getOrcid() != null && StringUtils.isBlank(dsAuthor.getOrcid())) {
+							updated = true;
+							dsAuthor.setOrcid(signature.getOrcid());
+						}
 					}
-					// @formatter:on
-					// If all existing affiliations are different (90% or less) to the one in the signature, add it to the list
-					// Do the computation ignoring casing, accents, punctuation marks, and normalizing the spaces
-					if (dsAuthor.getAffiliations().stream().allMatch(aff -> { 
-						String affiliation1 = StringUtils.normalizeSpace(StringUtils.stripAccents(aff).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
-						String affiliation2 = StringUtils.normalizeSpace(StringUtils.stripAccents(signature.getFullAffiliation()).replaceAll("[^\\p{IsLatin}]", "")).toLowerCase();
-						return (SimpleNameMatcher.compareNamesSafe(affiliation1, affiliation2) <= 90);
-						})) {
-						updated = true;
-						dsAuthor.addAffiliation(signature.getFullAffiliation().trim());
+					if (updated) {
+						dsAuthor.save();
+						logger.info(MessageFormat.format("Updated Author for ''{0}''", author));
+					} else {
+						logger.info(MessageFormat.format("No updates are required for Author ''{0}''", author));
 					}
-					// Add the e-mail if it doesn't exist yet
-					if (signature.getEmail() != null
-							&& !dsAuthor.getEmails().stream().map(em -> em.toLowerCase()).toList().contains(signature.getEmail().toLowerCase().trim())) {
-						updated = true;
-						dsAuthor.addEmail(signature.getEmail().toLowerCase().trim());
-					}
-					// Add the web if it doesn't exist yet
-					if (signature.getWeb() != null 
-							&& !dsAuthor.getWebs().stream().map(web -> web.toLowerCase()).toList().contains(signature.getWeb().toLowerCase().trim())) {
-						updated = true;
-						dsAuthor.addWeb(signature.getWeb().toLowerCase().trim());
-					}
-					// Add the ORCID if it doesn't exist yet
-					if (signature.getOrcid() != null && StringUtils.isBlank(dsAuthor.getOrcid())) {
-						updated = true;
-						dsAuthor.setOrcid(signature.getOrcid());
-					}
-				}
-				if (updated) {
-					dsAuthor.save();
-					logger.info(MessageFormat.format("Updated Author for ''{0}''", author));
-				} else {
-					logger.info(MessageFormat.format("No updates are required for Author ''{0}''", author));
+				} catch (Exception e) {
+					// There has been an error while updating the author, and not all metadata may have been updated
+					// Clear the locally stored UUID so that the author is re-processed in the next run
+					author.setSistedesUuid(null);
+					throw e;
 				}
 			}
 		}
