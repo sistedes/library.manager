@@ -67,9 +67,9 @@ class ValidateCommand implements Callable<Integer> {
 		final AtomicBoolean isValid = new AtomicBoolean(true);
 		conferenceData.getSubmissions().values().stream().forEach(submission -> {
 			submission.getSignatures().forEach(signature -> {
-				if (StringUtils.isBlank(conferenceData.getAuthors().get(signature.getAuthor()).getSistedesUuid())) {
-					logger.error(MessageFormat.format("Signature ''{0}'' of submission ''{1,number,#}'' does not refer to any Sistedes author",
-							signature.getFullName(), submission.getId()));
+				if (StringUtils.isBlank(signature.getSistedesUuid())) {
+					logger.error(MessageFormat.format("Signature ''{0}'' (author {1}) of submission ''{2,number,#}'' does not refer to any Sistedes author",
+							signature.getFullName(), signature.getAuthor(), submission.getId()));
 					isValid.set(false);
 				}
 			});

@@ -189,7 +189,8 @@ class PublishEditionCommand implements Callable<Integer> {
 				prelim.save();
 			} else {
 				dsPublication = dsRoot.getItemsEndpoint().getPublication(prelim.getSistedesUuid()).orElseThrow();
-				logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", prelim.getTitle(), prelim.getSistedesUuid()));
+				logger.info(MessageFormat.format("Publication for prelimiaries ''{0}'' ({1}) already exists with UUID ''{2}''",
+						prelim.getId(), prelim.getTitle(), prelim.getSistedesUuid()));
 			}
 
 			managePublicationBitstreams(prelim, dsPublication);
@@ -234,9 +235,9 @@ class PublishEditionCommand implements Callable<Integer> {
 					submission.save();
 				} else {
 					dsPublication = dsRoot.getItemsEndpoint().getPublication(submission.getSistedesUuid()).orElseThrow();
-					logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", submission.getTitle(),
-							submission.getSistedesUuid()));
-				}
+					logger.info(MessageFormat.format("Publication for prelimiaries ''{0}'' ({1}) already exists with UUID ''{2}''",
+							submission.getId(), submission.getTitle(), submission.getSistedesUuid()));
+					}
 				manageSubmissionAuthorships(submission, dsPublication);
 				managePublicationBitstreams(submission, dsPublication);
 			}
