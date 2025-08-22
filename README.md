@@ -154,7 +154,7 @@ conference from EasyChair data.
 Synchronizes the authors information between the local submissions and the _Sistedes Digital Library_, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` mode, the user will be asked whether found authors are a match or not. This command may take some time.
 
 ```
-Usage: java -jar <this-file.jar> sync-authors [-acir] -e=E-MAIL -f=DIR
+Usage: java -jar <this-file.jar> sync-authors [-acFir] -e=E-MAIL -f=DIR
        -p=PASSWORD -u=URI
 Synchronizes the authors information between the local submissions and the
 Sistedes Digital Library, trying to match existing authors in the library with
@@ -168,13 +168,14 @@ Already identified authors will be skipped when running in normal mode.
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=DIR    JSON file including the conference edition metadata.
+  -F, --force               Discard stored information about already processed
+                              authors and force re-sync.
   -i, --interactive         Ask interactively whether the found element (when
                               in doubt) is a match or not.
   -p, --password=PASSWORD   Password of the account in the Sistedes Digital
                               Library.
   -r, --dry-run             Do not perform any modifications.
-  -u, --uri=URI             URI of the root endpoint of the DSpace API.
-```
+  -u, --uri=URI             URI of the root endpoint of the DSpace API.```
 
 ### Validate conference data (`validate`)
 

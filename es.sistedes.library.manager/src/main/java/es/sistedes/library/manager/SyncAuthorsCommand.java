@@ -90,6 +90,9 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	
 	@Option(names = { "-a", "--admin-only" }, description = "Create new authors with administrator-only permissions (i.e., hidden to the general public).")
 	private boolean private_ = false;
+	
+	@Option(names = { "-F", "--force" }, description = "Discard stored information about already processed authors and force re-sync.")
+	private boolean force = false;
 
 	@Option(names = { "-c", "--curate" }, description = "Also launch curation tasks that may be applicable to the newly created Authors "
 			+ "(i.e., refreshsistedesauthortitle)")
@@ -136,7 +139,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	private void syncAuthor(Author author) {
 		Optional<DSAuthor> dsAuthorOpt = Optional.empty();
 		
-		if (author.getSistedesUuid() != null) {
+		if (author.getSistedesUuid() != null && !force) {
 			logger.info(MessageFormat.format("Author ''{0}'' has already been processed and has UUID ''{1}'', skipping...", author.getId(), author.getSistedesUuid()));
 			return;
 		}
