@@ -59,7 +59,6 @@ class ValidateCommand implements Callable<Integer> {
 		success = validateAuthorsAreLatin(conferenceData) && success;
 		success = validateSubmissionsHaveType(conferenceData) && success;
 		success = validateProceedingsEltsHaveSistedesHandles(conferenceData) && success;
-		success = validateProceedingsEltsHaveInternalHandles(conferenceData) && success;
 		success = validateNotDuplicateHandles(conferenceData) && success;
 		return success ? 0 : 1;
 	}
@@ -146,37 +145,6 @@ class ValidateCommand implements Callable<Integer> {
 		conferenceData.getSubmissions().values().stream().forEach(submission -> {
 			if (StringUtils.isEmpty(submission.getSistedesHandle())) {
 				logger.error(MessageFormat.format("Submission ''{0}'' ({1,number,#}) has no Sistedes Handle", submission.getTitle(), submission.getId()));
-				isValid.set(false);
-			}
-		});
-		return isValid.get();
-	}
-	
-	public static boolean validateProceedingsEltsHaveInternalHandles(ConferenceData conferenceData) {
-		final AtomicBoolean isValid = new AtomicBoolean(true);
-		if (StringUtils.isEmpty(conferenceData.getEdition().getInternalHandle())) {
-			logger.error(MessageFormat.format("Edition community ''{0}'' has no internal Handle", conferenceData.getEdition().getShortName()));
-			isValid.set(false);
-		}
-		if (StringUtils.isEmpty(conferenceData.getEdition().getPreliminariesInternalHandle())) {
-			logger.error("Preliminaries collection has no internal Handle");
-			isValid.set(false);
-		}
-		conferenceData.getPreliminaries().values().stream().forEach(prelim -> {
-			if (StringUtils.isEmpty(prelim.getInternalHandle())) {
-				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no internal Handle", prelim.getTitle(), prelim.getId()));
-				isValid.set(false);
-			}
-		});
-		conferenceData.getTracks().values().stream().forEach(track -> {
-			if (StringUtils.isEmpty(track.getInternalHandle())) {
-				logger.error(MessageFormat.format("Track ''{0}'' ({1}) has no internal Handle", track.getAcronym(), track.getId()));
-				isValid.set(false);
-			}
-		});
-		conferenceData.getSubmissions().values().stream().forEach(submission -> {
-			if (StringUtils.isEmpty(submission.getInternalHandle())) {
-				logger.error(MessageFormat.format("Submission ''{0}'' ({1,number,#}) has no internal Handle", submission.getTitle(), submission.getId()));
 				isValid.set(false);
 			}
 		});
