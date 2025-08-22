@@ -7,7 +7,6 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +17,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.multipdf.Splitter;
@@ -99,8 +97,8 @@ public class PdfImporter implements IConferenceDataImporter {
 
 	private void initializeContents(File pdfFile, List<List<Range<Integer>>> pages) throws IOException {
 		Edition edition = conferenceData.getEdition();
-		Map<Integer, Track> tracks = new HashedMap<>();
-		Map<Integer, Submission> submissions = new HashedMap<>();
+		List<Track> tracks = new ArrayList<>();
+		List<Submission> submissions = new ArrayList<>();
 		AtomicInteger submissionId = new AtomicInteger();
 		for (int i = 0; i < pages.size(); i++) {
 			Track track = Track.createTemplate(edition.getSistedesHandle().split("/")[0], edition.getAcronym(), edition.getYear());
@@ -119,8 +117,8 @@ public class PdfImporter implements IConferenceDataImporter {
 				s.setFilename(newFilename);
 			});
 			track.getSubmissions().addAll(trackSubmissions.stream().map(s -> s.getId()).toList());
-			tracks.put(trackId, track);
-			trackSubmissions.forEach(s -> submissions.put(s.getId(), s));
+			tracks.add(track);
+			trackSubmissions.forEach(s -> submissions.add(s));
 		}
 		this.conferenceData.setTracks(tracks);
 		this.conferenceData.setSubmissions(submissions);
@@ -147,14 +145,16 @@ public class PdfImporter implements IConferenceDataImporter {
 		Edition edition = conferenceData.getEdition();
 		PDDocument document = PDDocument.load(pdfFile);
 		for (int i = 0; i < pages.size(); i++) {
-			Preliminaries prelim = Preliminaries.createTemplate(edition.getSistedesHandle().split("/")[0], edition.getAcronym(), edition.getYear());
-			prelim.setId(i + 1);
+			int id = i + 1;
+			Preliminaries prelim = Preliminaries.createTemplate(edition.getPreliminariesFile(id), 
+					edition.getSistedesHandle().split("/")[0], edition.getAcronym(), edition.getYear());
+			prelim.setId(id);
 			prelim.setFilename(edition.getPreliminariesDocsFilenamePattern().replace("{acronym}", edition.getAcronym())
-					.replace("{year}", String.valueOf(edition.getYear())).replace("{id}", String.valueOf(i + 1)));
+					.replace("{year}", String.valueOf(edition.getYear())).replace("{id}", String.valueOf(id)));
 			Integer start = pages.get(i).getMinimum();
 			Integer end = pages.get(i).getMaximum();
 			Splitter splitter = createSplitter(start, end);
-			File prelimFile = new File(conferenceData.getWorkingDir(), prelim.getFilename());
+			File prelimFile = edition.getPreliminariesFile(id);
 			logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, prelimFile));
 			splitter.split(document).get(0).save(prelimFile);
 			preliminaries.add(prelim);
@@ -169,18 +169,18 @@ public class PdfImporter implements IConferenceDataImporter {
 		for (int i = 0; i < pages.size(); i++) {
 			Integer start = pages.get(i).getMinimum();
 			Integer end = pages.get(i).getMaximum();
-			Submission submission = new Submission();
-			String submissionId = start.toString() + end.toString();
-			submission.setId(Integer.valueOf(submissionId));
+			Integer submissionId = Integer.valueOf(start.toString() + end.toString());
+			Submission submission = new Submission(edition.getSubmissionFile(submissionId));
+			submission.setId(submissionId);
 			submission.setFilename(edition.getSubmissionsDocsFilenamePattern().replace("{acronym}", edition.getAcronym())
-					.replace("{year}", String.valueOf(edition.getYear())).replace("{id}", submissionId));
+					.replace("{year}", String.valueOf(edition.getYear())).replace("{id}", submissionId.toString()));
 			if (end - start <= 1) {
 				submission.setType(Type.ABSTRACT);
 			} else {
 				submission.setType(Type.PAPER);
 			}
 			Splitter splitter = createSplitter(start, end);
-			File submissionFile = new File(conferenceData.getWorkingDir(), submission.getFilename());
+			File submissionFile = edition.getSubmissionFile(submissionId);
 			logger.info(MessageFormat.format("Saving pages {0}-{1} to file ''{2}''", start, end, submissionFile));
 			splitter.split(document).get(0).save(submissionFile);
 			submissions.add(submission);

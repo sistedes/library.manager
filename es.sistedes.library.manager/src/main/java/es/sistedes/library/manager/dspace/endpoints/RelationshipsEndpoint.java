@@ -35,4 +35,16 @@ public class RelationshipsEndpoint extends AbstractPageableResponse {
 				.block();
 		// @formatter:on
 	}
+	
+	public void deleteRelationship(Integer id) {
+		// @formatter:off
+		DSpaceConnectionManager
+				.buildClient(getSelfUri())
+				.delete()
+				.uri(uriBuilder -> uriBuilder.pathSegment(String.valueOf(id)).build())
+				.retrieve()
+				.toBodilessEntity()
+				.block();
+		// @formatter:on
+	}
 }

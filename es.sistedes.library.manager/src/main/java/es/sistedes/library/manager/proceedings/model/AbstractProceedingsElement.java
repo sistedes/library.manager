@@ -11,8 +11,25 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.MessageFormat;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 public abstract class AbstractProceedingsElement {
 
+	private static final Logger logger = LoggerFactory.getLogger(AbstractProceedingsElement.class);
+	
+	@JsonIgnore
+	protected File file;
+	
 	protected String sistedesUuid;
 	
 	protected Integer id;
@@ -91,5 +108,31 @@ public abstract class AbstractProceedingsElement {
 	 */
 	public void setAbstract(String abstract_) {
 		this.abstract_ = abstract_;
+	}
+
+	@JsonIgnore
+	public File getFile() {
+		return file;
+	}
+	
+	@JsonIgnore
+	protected void setFile(File file) {
+		this.file = file;
+	}
+
+	public void save() {
+		if (file == null) {
+			throw new RuntimeException(MessageFormat.format("Proceedings element ''{0}'' does not have a file name", this.toString()));
+		}
+		JsonMapper mapper = JsonMapper.builder().build();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.setSerializationInclusion(Include.NON_EMPTY);
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		mapper.configure(SerializationFeature.CLOSE_CLOSEABLE, true);
+		try {
+			mapper.writeValue(file, this);
+		} catch (IOException e) {
+			logger.error(MessageFormat.format("Unable to write ''{0}''! ({1})", file, e.getLocalizedMessage()));
+		}
 	}
 }

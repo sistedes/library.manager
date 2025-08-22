@@ -11,6 +11,8 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.text.WordUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import es.sistedes.library.manager.dspace.model.DSItem;
 
@@ -41,6 +49,13 @@ public class Submission extends AbstractProceedingsDocument {
 		public DSItem.Type getPublicationType() {
 			return publicationType;
 		}
+	}
+	
+	public Submission() {
+	}
+	
+	public Submission(File file) {
+		this.file = file;
 	}
 	
 	/**
@@ -86,5 +101,16 @@ public class Submission extends AbstractProceedingsDocument {
 			}
 		});
 		return result;
+	}
+	
+	public static Submission load(File submissionFile) throws StreamReadException, DatabindException, IOException {
+		JsonMapper mapper = JsonMapper.builder().build();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.setSerializationInclusion(Include.NON_EMPTY);
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		mapper.configure(SerializationFeature.CLOSE_CLOSEABLE, true);
+		Submission submission = mapper.readValue(submissionFile, Submission.class);
+		submission.setFile(submissionFile);
+		return submission;
 	}
 }

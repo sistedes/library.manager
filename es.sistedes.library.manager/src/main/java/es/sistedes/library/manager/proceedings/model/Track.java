@@ -11,11 +11,10 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import es.sistedes.library.manager.HandleGenerator;
 
@@ -26,6 +25,9 @@ public class Track extends AbstractProceedingsElement {
 	protected String name;
 	
 	protected SortedSet<Integer> submissions = new TreeSet<>();
+	
+	@JsonIgnore
+	private TracksIndex index;
 
 	/**
 	 * @return the acronym
@@ -62,6 +64,10 @@ public class Track extends AbstractProceedingsElement {
 		return submissions;
 	}
 
+	public void setIndex(TracksIndex index) {
+		this.index = index;
+	}
+	
 	/**
 	 * Generates a new {@link Track} with the given <code>acronym</code> and for the
 	 * given <code>year</code> that serves as a template to be later manually
@@ -80,54 +86,9 @@ public class Track extends AbstractProceedingsElement {
 		HandleGenerator.generateHandle(tracks, prefix, acronym, year).ifPresent(tracks::setSistedesHandle);
 		return tracks;
 	}
-
-	/**
-	 * Utility class to save all {@link Track}s information in a single file as an
-	 * {@link AbstractProceedingsElement}
-	 * 
-	 * @author agomez
-	 *
-	 */
-	public static class TracksIndex extends AbstractProceedingsElement {
-
-		private List<Track> tracks = new ArrayList<>();
-
-		private TracksIndex() {
-		}
-		
-		private TracksIndex(Track track) {
-			this.tracks.add(track);
-		}
-		
-		private TracksIndex(Collection<Track> tracks) {
-			this.tracks.addAll(tracks);
-		}
-
-		/**
-		 * Static method factory
-		 * 
-		 * @return
-		 */
-		public static TracksIndex from(Track track) {
-			return new TracksIndex(track);
-		}
-
-		/**
-		 * Static method factory
-		 * 
-		 * @param tracks
-		 * @return
-		 */
-		public static TracksIndex from(Collection<Track> tracks) {
-			return new TracksIndex(tracks);
-		}
-
-		/**
-		 * @return the tracks
-		 */
-		public List<Track> getTracks() {
-			return tracks;
-		}
-
+	
+	@Override
+	public void save() {
+		index.save();
 	}
 }

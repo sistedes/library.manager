@@ -22,6 +22,8 @@ public class Author {
 	protected String orcid;
 
 	protected Set<Signature> signatures = new HashSet<>();
+	
+	protected Set<Submission> submissions = new HashSet<>();
 
 	/**
 	 * @return the id
@@ -84,6 +86,13 @@ public class Author {
 	 */
 	public Set<Signature> getSignatures() {
 		return signatures;
+	}
+
+	/**
+	 * @return the submissions where the {@link Author} appears
+	 */
+	public Set<Submission> getSubmissions() {
+		return submissions;
 	}
 
 	@Override

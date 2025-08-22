@@ -59,6 +59,7 @@ class ValidateCommand implements Callable<Integer> {
 		success = validateAuthorsAreLatin(conferenceData) && success;
 		success = validateSubmissionsHaveType(conferenceData) && success;
 		success = validateProceedingsEltsHaveSistedesHandles(conferenceData) && success;
+		success = validateProceedingsEltsHaveInternalHandles(conferenceData) && success;
 		success = validateNotDuplicateHandles(conferenceData) && success;
 		return success ? 0 : 1;
 	}
@@ -130,7 +131,7 @@ class ValidateCommand implements Callable<Integer> {
 			logger.error("Preliminaries collection has no Sistedes Handle");
 			isValid.set(false);
 		}
-		conferenceData.getPreliminaries().stream().forEach(prelim -> {
+		conferenceData.getPreliminaries().values().stream().forEach(prelim -> {
 			if (StringUtils.isEmpty(prelim.getSistedesHandle())) {
 				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no Sistedes Handle", prelim.getTitle(), prelim.getId()));
 				isValid.set(false);
@@ -151,15 +152,6 @@ class ValidateCommand implements Callable<Integer> {
 		return isValid.get();
 	}
 	
-	/**
-	 * This method should be no longer needed, since internal handles were required
-	 * to register the Sistedes Handle to Internal Handle redirection which is now
-	 * deprecated
-	 * 
-	 * @param conferenceData
-	 * @return
-	 */
-	@Deprecated
 	public static boolean validateProceedingsEltsHaveInternalHandles(ConferenceData conferenceData) {
 		final AtomicBoolean isValid = new AtomicBoolean(true);
 		if (StringUtils.isEmpty(conferenceData.getEdition().getInternalHandle())) {
@@ -170,7 +162,7 @@ class ValidateCommand implements Callable<Integer> {
 			logger.error("Preliminaries collection has no internal Handle");
 			isValid.set(false);
 		}
-		conferenceData.getPreliminaries().stream().forEach(prelim -> {
+		conferenceData.getPreliminaries().values().stream().forEach(prelim -> {
 			if (StringUtils.isEmpty(prelim.getInternalHandle())) {
 				logger.error(MessageFormat.format("Preliminaries ''{0}'' ({1}) has no internal Handle", prelim.getTitle(), prelim.getId()));
 				isValid.set(false);
@@ -207,7 +199,7 @@ class ValidateCommand implements Callable<Integer> {
 		}
 		handles.add(conferenceData.getEdition().getPreliminariesSistedesHandle());
 		
-		conferenceData.getPreliminaries().stream().forEach(prelim -> {
+		conferenceData.getPreliminaries().values().stream().forEach(prelim -> {
 			if (handles.contains(prelim.getSistedesHandle())) {
 				logger.error(MessageFormat.format("Duplicate Handle found ''{0}''!", prelim.getId()));
 				isValid.set(false);

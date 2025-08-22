@@ -99,20 +99,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
-	volatile private boolean saved = false;
-	
 	@Override
 	public Integer call() throws Exception {
 
 		conferenceData = new ConferenceData(editionFile);
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			// Make sure changes are saved!
-			if (!saved && !dryRun) {
-				logger.info("Saving conference data before shutting down...");
-				conferenceData.save();
-				logger.info("Conference data saved!");
-			}
-		}));
 		
 		if (!ValidateCommand.validateAuthorsAreLatin(conferenceData)) {
 			System.err.println("ERROR: Some authors signatures contains invalid characters. Correct them first!");
@@ -127,26 +117,17 @@ class SyncAuthorsCommand implements Callable<Integer> {
 		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 		
-		try {
-			for (Author author : conferenceData.getAuthors().values()) {
-				syncAuthor(author);
-			}
-			// @formatter:off
-			if (curate) {
-				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "refreshsistedesauthortitle"), 
-						new DSParameter("-i", "11705/2")));
-			}
-			// @formatter:on
-		} finally {
-			if (!dryRun) {
-				// Save the conference data
-				logger.info("Saving conference data...");
-				conferenceData.save();
-				saved = true;
-				logger.info("Conference data saved!");
-			}
+		for (Author author : conferenceData.getAuthors().values()) {
+			syncAuthor(author);
 		}
+		
+		// @formatter:off
+		if (curate) {
+			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+					new DSParameter("-t", "refreshsistedesauthortitle"), 
+					new DSParameter("-i", "11705/2")));
+		}
+		// @formatter:on
 		
 		// Return success
 		return 0;
@@ -256,6 +237,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					throw e;
 				}
 			}
+			author.getSubmissions().forEach(submission -> {
+				submission.save();
+				logger.debug(MessageFormat.format("Submission ''{0}'' of author ''{1}'' saved", submission.getId(), author.getId()));
+			});
 		}
 	}
 

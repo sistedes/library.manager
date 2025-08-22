@@ -62,7 +62,6 @@ class DumpHandlesBatch implements Callable<Integer> {
 
 	private ConferenceData conferenceData;
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public Integer call() throws Exception {
 		conferenceData = new ConferenceData(editionFile);

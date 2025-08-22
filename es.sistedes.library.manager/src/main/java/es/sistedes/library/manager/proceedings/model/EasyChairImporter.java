@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -52,9 +54,6 @@ public class EasyChairImporter implements IConferenceDataImporter {
 		File editionFile = new File(outputDir, Edition.EDITION_DEFAULT_FILENAME_PATTERN.replace("{acronym}", acronym).replace("{year}", String.valueOf(year)));
 		conferenceData = new ConferenceData(editionFile, prefix, acronym, year);
 		try (Workbook workbook = new XSSFWorkbook(new FileInputStream(xslxFile))) {
-			// Create a dummy edition
-			conferenceData.setEdition(Edition.createTemplate(prefix, acronym, year));
-
 			// Tracks are optional, it depends on the conference whether they exist or not,
 			// but if they exist, they **must** be read before the Submissions are processed
 			Optional.ofNullable(workbook.getSheet("Tracks")).ifPresent(s -> conferenceData.setTracks(readTracks(s)));
@@ -72,7 +71,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 
 			// Now read the submissions, and pass the tracks and authoring information so
 			// that submissions can be completely defined
-			conferenceData.setSubmissions(readSubmissions(workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.getTracks()));
+			conferenceData.setSubmissions(readSubmissions(conferenceData.getEdition(), workbook.getSheet("Submissions"), submissionsSignatures, conferenceData.getTracks()));
 			conferenceData.getSubmissions().values().stream().forEach(submission -> {
 				HandleGenerator.generateHandle(submission, prefix, acronym, year).ifPresent(submission::setSistedesHandle);
 				importSubmissionFile(submission, inputDir, pattern);
@@ -86,8 +85,8 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * @param sheet
 	 * @return
 	 */
-	private static Map<Integer, Track> readTracks(Sheet sheet) {
-		Map<Integer, Track> tracks = new HashMap<>();
+	private static Collection<Track> readTracks(Sheet sheet) {
+		List<Track> tracks = new ArrayList<>();
 		new SheetReader(sheet).forEach(rowReader -> {
 			Track track = new Track();
 			try {
@@ -101,7 +100,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 				rowReader.get("Name", String.class).map(StringUtils::stripAccents).ifPresent(track::setAcronym);
 				logger.debug("Reading 'long name'");
 				rowReader.get("Long name", String.class).ifPresent(track::setName);
-				tracks.put(track.getId(), track);
+				tracks.add(track);
 			} catch (Exception e) {
 				logger.error(MessageFormat.format("Error reading Track # ''{0}''", track.getId()));
 			}
@@ -174,17 +173,22 @@ public class EasyChairImporter implements IConferenceDataImporter {
 	 * @param sheet
 	 * @return
 	 */
-	private static Map<Integer, Submission> readSubmissions(Sheet sheet, ListValuedMap<Integer, Signature> submissionsSignatures, Map<Integer, Track> tracks) {
-		Map<Integer, Submission> submissions = new HashMap<>();
+	private static Collection<Submission> readSubmissions(Edition edition, Sheet sheet, ListValuedMap<Integer, Signature> submissionsSignatures, Map<Integer, Track> tracks) {
+		List<Submission> submissions = new ArrayList<>();
 		new SheetReader(sheet).forEach(rowReader -> {
-			Submission submission = new Submission();
+			Optional<Integer> submissionId;
+			try {
+				submissionId = rowReader.get("#", Double.class).map(Double::intValue);
+			} catch (ClassCastException e) {
+				submissionId = rowReader.get("#", String.class).map(Integer::valueOf);
+			}
+			if (!submissionId.isPresent()) {
+				throw new RuntimeException("Submission has no id! Malformed input file, cannot continue...");
+			}
+			final Submission submission = new Submission(edition.getSubmissionFile(submissionId.get()));
+			submission.setId(submissionId.get());
 			try {
 				logger.debug("Reading '#'");
-				try {
-					rowReader.get("#", Double.class).map(Double::intValue).ifPresent(submission::setId);
-				} catch (ClassCastException e) {
-					rowReader.get("#", String.class).map(Integer::valueOf).ifPresent(submission::setId);
-				}
 				try {
 					if (rowReader.get("Deleted", String.class).orElse("").length() > 0) {
 						// The "Deleted" cell has a mark indicating the submission has
@@ -237,7 +241,7 @@ public class EasyChairImporter implements IConferenceDataImporter {
 										submission.getId()));
 							}
 						});
-						submissions.put(submission.getId(), submission);
+						submissions.add(submission);
 					}
 				});
 			} catch (Exception e) {

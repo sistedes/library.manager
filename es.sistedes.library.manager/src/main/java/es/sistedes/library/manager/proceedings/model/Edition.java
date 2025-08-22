@@ -11,16 +11,25 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import es.sistedes.library.manager.HandleGenerator;
 
 public class Edition extends AbstractProceedingsElement {
-
+	
 	volatile public static String EDITION_DEFAULT_FILENAME_PATTERN = "{acronym}-{year}-0-EDITION.json";
 	
 	protected String acronym;
@@ -289,7 +298,7 @@ public class Edition extends AbstractProceedingsElement {
 	 * @param year
 	 * @return
 	 */
-	public static Edition createTemplate(String prefix, String acronym, int year) {
+	public static Edition createTemplate(File editionFile, String prefix, String acronym, int year) {
 		Edition edition = new Edition();
 		edition.setId(1);
 		edition.setAcronym(acronym);
@@ -306,6 +315,54 @@ public class Edition extends AbstractProceedingsElement {
 		edition.getEditors().add("Doe, J.");
 		HandleGenerator.generateHandle(edition, prefix, acronym, year).ifPresent(edition::setSistedesHandle);
 		edition.setPreliminariesSistedesHandle(edition.getSistedesHandle() + "/PRELIMINARES");
+		edition.setFile(editionFile);
 		return edition;
+	}
+
+	public static Edition load(File editionFile) throws StreamReadException, DatabindException, IOException {
+		JsonMapper mapper = JsonMapper.builder().build();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.setSerializationInclusion(Include.NON_EMPTY);
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		mapper.configure(SerializationFeature.CLOSE_CLOSEABLE, true);
+		Edition edition = mapper.readValue(editionFile, Edition.class);
+		edition.setFile(editionFile);
+		return edition;
+	}
+	
+	/**
+	 * Returns the tracks file
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@JsonIgnore
+	public File getTracksFile() {
+		String rawName = _tracksFilenamePattern.replace("{acronym}", acronym).replace("{year}", String.valueOf(year));
+		return new File(getFile().getParentFile(), StringUtils.stripAccents(rawName));
+	}
+	
+	/**
+	 * Returns the File of the given preliminaries
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@JsonIgnore
+	public File getPreliminariesFile(Integer id) {
+		String rawName = _preliminariesFilenamePattern.replace("{acronym}", acronym).replace("{year}", String.valueOf(year)).replace("{id}", String.valueOf(id));
+		return new File(getFile().getParentFile(), StringUtils.stripAccents(rawName));
+	}
+	
+	/**
+	 * Returns the File of the given submission
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@JsonIgnore
+	public File getSubmissionFile(Integer id) {
+		String rawName = _submissionsFilenamePattern.replace("{acronym}", acronym).replace("{year}", String.valueOf(year)).replace("{id}", String.valueOf(id));
+		return new File(getFile().getParentFile(), StringUtils.stripAccents(rawName));
 	}
 }

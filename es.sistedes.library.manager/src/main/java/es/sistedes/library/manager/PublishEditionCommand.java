@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FilenameUtils;
@@ -100,20 +101,10 @@ class PublishEditionCommand implements Callable<Integer> {
 	private DSpaceConnection connection;
 	private DSRoot dsRoot;
 
-	volatile private boolean saved = false;
-	
 	@Override
 	public Integer call() throws Exception {
 
 		conferenceData = new ConferenceData(editionFile);
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			// Make sure changes are saved!
-			if (!saved) {
-				logger.info("Saving conference data before shutting down...");
-				conferenceData.save();
-				logger.info("Conference data saved!");
-			}
-		}));
 		
 		if (!ValidateCommand.validateAuthorsHaveSistedesId(conferenceData)) {
 			System.err.println("ERROR: Some authors are not in sync with the Sistedes Digital Library. Execute the 'sync-authors' command first.");
@@ -124,77 +115,78 @@ class PublishEditionCommand implements Callable<Integer> {
 		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 
-		try {
-			// Get the top level community
-			DSCommunity conferenceCommunity = findConferenceTopCommunity();
-	
-			// Get or create the edition community
-			Edition edition = conferenceData.getEdition();
-			DSCommunity editionCommunity = getOrCreateEditionCommunity(conferenceCommunity, edition);
-			edition.setInternalHandle(editionCommunity.getHandle());
-			
-			// If private, delete all READ permissions
-			if (private_) {
-				deleteReadResourcePolicies(editionCommunity.getUuid());
-			}
-	
-			// Publish the preliminaries
-			publishPreliminaries(editionCommunity, edition);
-	
-			// Publish the papers
-			publishTracks(editionCommunity, edition);
-			
-			// @formatter:off
-			if (curate) {
-				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "registerexternalhandle"), 
-						new DSParameter("-i", editionCommunity.getHandle())));
-				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "filtermedia"), 
-						new DSParameter("-i", editionCommunity.getHandle())));
-				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "generatecitation"), 
-						new DSParameter("-i", editionCommunity.getHandle())));
-				dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "generatebibcitation"), 
-						new DSParameter("-i", editionCommunity.getHandle())));
-			}
-			// @formatter:on
+		// Get the top level community
+		DSCommunity conferenceCommunity = findConferenceTopCommunity();
 
-		} finally {
-			// Save the conference data
-			logger.info("Saving conference data...");
-			conferenceData.save();
-			saved = true;
-			logger.info("Conference data saved!");
+		// Get or create the edition community
+		Edition edition = conferenceData.getEdition();
+		
+		DSCommunity editionCommunity = getEditionCommunity(conferenceCommunity, edition).orElseGet(() -> { 
+			DSCommunity comm = createEditionCommunity(conferenceCommunity, edition);
+			if (private_) {
+				deleteReadResourcePolicies(comm.getUuid());
+			}
+			edition.setInternalHandle(comm.getHandle());
+			edition.setSistedesUuid(comm.getUuid());
+			edition.save();
+			return comm;
+		});
+
+		// Publish the preliminaries
+		publishPreliminaries(editionCommunity, edition);
+
+		// Publish the papers
+		publishTracks(editionCommunity, edition);
+		
+		// @formatter:off
+		if (curate) {
+			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+					new DSParameter("-t", "registerexternalhandle"), 
+					new DSParameter("-i", editionCommunity.getHandle())));
+			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+					new DSParameter("-t", "filtermedia"), 
+					new DSParameter("-i", editionCommunity.getHandle())));
+			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+					new DSParameter("-t", "generatecitation"), 
+					new DSParameter("-i", editionCommunity.getHandle())));
+			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+					new DSParameter("-t", "generatebibcitation"), 
+					new DSParameter("-i", editionCommunity.getHandle())));
 		}
+		// @formatter:on
 
 		// Return success
 		return 0;
 	}
 
 	private void publishPreliminaries(DSCommunity editionCommunity, Edition edition) {
-		DSCollection preliminariesCollection = getOrCreatePreliminariesCollection(editionCommunity, edition);
+		DSCollection preliminariesCollection = getPreliminariesCollection(editionCommunity, edition).orElseGet(() -> {
+			DSCollection coll = createPreliminariesCollection(editionCommunity, edition);
+			if (private_) {
+				deleteReadResourcePolicies(coll.getUuid());
+			}
+			edition.setPreliminariesSistedesUuid(coll.getUuid());
+			edition.setPreliminariesSistedesHandle(coll.getSistedesIdentifier());
+			edition.setPreliminariesInternalHandle(coll.getHandle());
+			edition.save();
+			return coll;
+		});
 		
-		// If private, delete all READ permissions
-		if (private_) {
-			deleteReadResourcePolicies(preliminariesCollection.getUuid());
-		}
 
 		// Start iterating over the preliminaries
-		for (Preliminaries prelim : conferenceData.getPreliminaries()) {
+		for (Preliminaries prelim : conferenceData.getPreliminaries().values()) {
 			DSPublication dsPublication = null;
 			if (StringUtils.isEmpty(prelim.getSistedesUuid())) {
 				// Create the preliminaries only if it has not been created yet
 				logger.debug(MessageFormat.format("Creating publication for preliminaries ''{0}''", prelim.getTitle()));
 				dsPublication = DSPublication.createPublication(dsRoot, preliminariesCollection, edition, prelim);
-				prelim.setSistedesUuid(dsPublication.getUuid());
-				prelim.setInternalHandle(dsPublication.getHandle());
-				logger.info(MessageFormat.format("Created publication for preliminaries ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
-				// If private, delete all READ permissions
 				if (private_) {
 					deleteReadResourcePolicies(dsPublication.getUuid());
 				}
+				logger.info(MessageFormat.format("Created publication for preliminaries ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
+				prelim.setSistedesUuid(dsPublication.getUuid());
+				prelim.setInternalHandle(dsPublication.getHandle());
+				prelim.save();
 			} else {
 				dsPublication = dsRoot.getItemsEndpoint().getPublication(prelim.getSistedesUuid()).orElseThrow();
 				logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", prelim.getTitle(), prelim.getSistedesUuid()));
@@ -214,13 +206,17 @@ class PublishEditionCommand implements Callable<Integer> {
 
 			// Get (or create, if it does not exist) the collection which will hold the
 			// publications
-			DSCollection trackCollection = getOrCreateTrackCollection(editionCommunity, track);
+			DSCollection trackCollection = getTrackCollection(editionCommunity, track).orElseGet(() -> {
+				DSCollection coll = createTrackCollection(editionCommunity, track);
+				if (private_) {
+					deleteReadResourcePolicies(coll.getUuid());
+				}
+				track.setSistedesUuid(coll.getUuid());
+				track.setInternalHandle(coll.getHandle());
+				track.save();
+				return coll;
+			});
 			
-			// If private, delete all READ permissions
-			if (private_) {
-				deleteReadResourcePolicies(trackCollection.getUuid());
-			}
-
 			// Start iterating over the submissions
 			for (int submissionId : track.getSubmissions()) {
 				Submission submission = conferenceData.getSubmissions().get(submissionId);
@@ -229,13 +225,13 @@ class PublishEditionCommand implements Callable<Integer> {
 					// Create the submission only if it has not been created yet 
 					logger.debug(MessageFormat.format("Creating publication for ''{0}''", submission.getTitle()));
 					dsPublication = DSPublication.createPublication(dsRoot, trackCollection, edition, submission);
-					submission.setSistedesUuid(dsPublication.getUuid());
-					submission.setInternalHandle(dsPublication.getHandle());
-					logger.info(MessageFormat.format("Created publication for ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
-					// If private, delete all READ permissions
 					if (private_) {
 						deleteReadResourcePolicies(dsPublication.getUuid());
 					}
+					logger.info(MessageFormat.format("Created publication for ''{0}'' with UUID ''{1}''", dsPublication.getName(), dsPublication.getUuid()));
+					submission.setSistedesUuid(dsPublication.getUuid());
+					submission.setInternalHandle(dsPublication.getHandle());
+					submission.save();
 				} else {
 					dsPublication = dsRoot.getItemsEndpoint().getPublication(submission.getSistedesUuid()).orElseThrow();
 					logger.info(MessageFormat.format("Publication for ''{0}'' already exists with UUID ''{1}''", submission.getTitle(),
@@ -254,32 +250,41 @@ class PublishEditionCommand implements Callable<Integer> {
 			throw new RuntimeException(
 					MessageFormat.format("Submission ''{0}'' ({1}) has more relationships than signatures!", submission.getId(), submission.getTitle()));
 		} else {
+			// First clean all existing relationships
+			dsPublication.getRelationships().forEach(r -> {
+				logger.info(MessageFormat.format("Deleting authorship relationship with id ''{0,number,#}''", r.getId()));
+				dsRoot.getRelationshipsEndpoint().deleteRelationship(r.getId());
+			});
+			// Now recreate authorships
 			for (Signature signature : submission.getSignatures()) {
 				logger.debug(MessageFormat.format("Creating authorship for ''{0}''", signature));
 				DSAuthor dsAuthor = dsRoot.getItemsEndpoint().getAuthor(signature.getSistedesUuid()).orElseThrow();
-				if (dsPublication.getRelationships().stream().noneMatch(r -> dsAuthor.getSelfUri().equals(r.getLinkUri("rightItem")))) { 
-					if (submission.getType().getPublicationType() == DSItem.Type.ABSTRACT) {
-						dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfAbstractRelationship(), dsPublication, dsAuthor);
-					} else if (submission.getType().getPublicationType() == DSItem.Type.PAPER) {
-						dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfPaperRelationship(), dsPublication, dsAuthor);
-					} else {
-						throw new RuntimeException(MessageFormat.format("Unexpected type of publication ''{0}'' in submission ''{1}''",
-								submission.getType().getPublicationType(), submission.getId()));
-					}
-					logger.info(MessageFormat.format("Created authorship for ''{0}''", signature));
+				if (submission.getType().getPublicationType() == DSItem.Type.ABSTRACT) {
+					dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfAbstractRelationship(), dsPublication, dsAuthor);
+				} else if (submission.getType().getPublicationType() == DSItem.Type.PAPER) {
+					dsRoot.getRelationshipsEndpoint().createRelationship(getIsAuthorOfPaperRelationship(), dsPublication, dsAuthor);
+				} else {
+					throw new RuntimeException(MessageFormat.format("Unexpected type of publication ''{0}'' in submission ''{1}''",
+							submission.getType().getPublicationType(), submission.getId()));
 				}
+				logger.info(MessageFormat.format("Created authorship for ''{0}''", signature));
 			}
 		}
 	}
 
 	private void managePublicationBitstreams(AbstractProceedingsDocument document, DSPublication dsPublication) {
-		DSBundle originalBundle = dsPublication.getOriginalBundle().orElse(dsPublication.createOriginalBundle());
+		DSBundle originalBundle = dsPublication.getOriginalBundle().orElseGet(() -> dsPublication.createOriginalBundle());
 
 		File originalFile = new File(editionFile.getParent(), document.getFilename());
 		File otherFile = null;
 		if (FilenameUtils.getExtension(originalFile.getAbsolutePath()).equals("md")) {
-			logger.info(MessageFormat.format("File for document ''{0}'' is in markdown, a conversion to PDF will be attempted", document.getTitle()));
-			File pdfFile = createPdfFile(document.getTitle(), originalFile);
+			File pdfFile = new File(FilenameUtils.removeExtension(originalFile.getAbsolutePath()) + ".pdf");
+			if (pdfFile.exists()) {
+				logger.info(MessageFormat.format("File for document ''{0}'' is in markdown, but a PDF file with the same name already exists. Skipping file conversion...", document.getTitle()));
+			} else {
+				logger.info(MessageFormat.format("File for document ''{0}'' is in markdown, a conversion to PDF will be attempted", document.getTitle()));
+				writePdfFile(document.getTitle(), originalFile, pdfFile);
+			}
 			otherFile = originalFile;
 			originalFile = pdfFile;
 		}
@@ -297,7 +302,7 @@ class PublishEditionCommand implements Callable<Integer> {
 		}
 		
 		if (otherFile != null) {
-			DSBundle otherBundle = dsPublication.getOtherBundle().orElse(dsPublication.createOtherBundle());
+			DSBundle otherBundle = dsPublication.getOtherBundle().orElseGet(() -> dsPublication.createOtherBundle());
 			if (otherBundle.getBitstreams().size() == 1) {
 				logger.info(MessageFormat.format("Alternative file for submission ''{0}'' ({1}) is already uploaded, skipping...", document.getId(), document.getTitle()));	
 			} else if (otherBundle.getBitstreams().size() > 1) {
@@ -311,59 +316,67 @@ class PublishEditionCommand implements Callable<Integer> {
 			}
 		}
 	}
-
-	private DSCommunity getOrCreateEditionCommunity(DSCommunity conferenceCommunity, Edition edition) {
-		DSCommunity editionCommunity = null;
-		if (StringUtils.isEmpty(edition.getSistedesUuid())) {
-			logger.debug(MessageFormat.format("Creating community for ''{0}''", edition.getShortName()));
-			editionCommunity = DSCommunity.createSubCommunity(dsRoot, conferenceCommunity, edition);
-			edition.setSistedesUuid(editionCommunity.getUuid());
-			edition.setInternalHandle(editionCommunity.getHandle());
-			logger.info(MessageFormat.format("Created community for ''{0}'' with UUID ''{1}''", editionCommunity.getName(), editionCommunity.getUuid()));
-		} else {
-			editionCommunity = dsRoot.getCommunitiesEndpoint().getCommunity(edition.getSistedesUuid());
-			logger.info(MessageFormat.format("Found community for ''{0}'' with UUID ''{1}''", editionCommunity.getName(), editionCommunity.getUuid()));
+	
+	private Optional<DSCommunity> getEditionCommunity(DSCommunity conferenceCommunity, Edition edition) {
+		if (edition.getSistedesUuid() == null) {
+			return Optional.empty();
 		}
+		DSCommunity editionCommunity = dsRoot.getCommunitiesEndpoint().getCommunity(edition.getSistedesUuid());
+		logger.info(MessageFormat.format("Found community for ''{0}'' with UUID ''{1}''", editionCommunity.getName(), editionCommunity.getUuid()));
+		return Optional.of(editionCommunity);
+	}
+
+	private DSCommunity createEditionCommunity(DSCommunity conferenceCommunity, Edition edition) {
+		logger.debug(MessageFormat.format("Creating community for ''{0}''", edition.getShortName()));
+		DSCommunity editionCommunity = DSCommunity.createSubCommunity(dsRoot, conferenceCommunity, edition);
+		edition.setSistedesUuid(editionCommunity.getUuid());
+		edition.setInternalHandle(editionCommunity.getHandle());
+		logger.info(MessageFormat.format("Created community for ''{0}'' with UUID ''{1}''", editionCommunity.getName(), editionCommunity.getUuid()));
 		return editionCommunity;
 	}
-
-	private DSCollection getOrCreatePreliminariesCollection(DSCommunity editionCommunity, Edition edition) {
-		DSCollection preliminariesCollection;
-		if (StringUtils.isEmpty(edition.getPreliminariesSistedesUuid())) {
-			Track preliminaries = new Track();
-			// @formatter:off
-			preliminaries.setName("Preliminares");
-			preliminaries.setAcronym("PRELIMINARES");
-			preliminaries.setSistedesHandle(edition.getSistedesHandle() + "/PRELIMINARES");
-			preliminaries.setAbstract(MessageFormat.format(
-							"Preliminares de las Actas de las {0}. Los preliminares de las actas incluyen "
-							+ "información adicional sobre las jornadas, tales como la presentación de las jornadas, "
-							+ "los comités participantes, las conferencias invitadas, o los agradecimientos, entre "
-							+ "otras secciones.",
-							edition.getFullName()));
-			preliminariesCollection = DSCollection.createCollection(dsRoot, editionCommunity, preliminaries);
-			edition.setPreliminariesSistedesUuid(preliminariesCollection.getUuid());
-			edition.setPreliminariesSistedesHandle(preliminariesCollection.getSistedesIdentifier());
-			edition.setPreliminariesInternalHandle(preliminariesCollection.getHandle());
-			// @formatter:on
-		} else {
-			preliminariesCollection = dsRoot.getCollectionsEndpoint().getCollection(edition.getPreliminariesSistedesUuid());
+	
+	private Optional<DSCollection> getPreliminariesCollection(DSCommunity editionCommunity, Edition edition) {
+		if (edition.getPreliminariesSistedesUuid() == null) {
+			return Optional.empty();
 		}
-		return preliminariesCollection;
+		DSCollection preliminariesCollection = dsRoot.getCollectionsEndpoint().getCollection(edition.getPreliminariesSistedesUuid());
+		logger.info(MessageFormat.format("Found collection for ''{0}'' with UUID ''{1}''", preliminariesCollection.getName(), preliminariesCollection.getUuid()));
+		return Optional.of(preliminariesCollection);
 	}
 
-	private DSCollection getOrCreateTrackCollection(DSCommunity editionCommunity, Track track) {
-		DSCollection trackCollection;
-		if (StringUtils.isEmpty(track.getSistedesUuid())) {
-			logger.debug(MessageFormat.format("Creating collection for ''{0}''", track.getName()));
-			trackCollection = DSCollection.createCollection(dsRoot, editionCommunity, track);
-			track.setSistedesUuid(trackCollection.getUuid());
-			track.setInternalHandle(trackCollection.getHandle());
-			logger.info(MessageFormat.format("Created collection for ''{0}'' with UUID ''{1}''", trackCollection.getName(), trackCollection.getUuid()));
-		} else {
-			trackCollection = dsRoot.getCollectionsEndpoint().getCollection(track.getSistedesUuid());
-			logger.info(MessageFormat.format("Found collection for ''{0}'' with UUID ''{1}''", trackCollection.getName(), trackCollection.getUuid()));
+	private DSCollection createPreliminariesCollection(DSCommunity editionCommunity, Edition edition) {
+		Track preliminaries = new Track();
+		// @formatter:off
+		preliminaries.setName("Preliminares");
+		preliminaries.setAcronym("PRELIMINARES");
+		preliminaries.setSistedesHandle(edition.getSistedesHandle() + "/PRELIMINARES");
+		preliminaries.setAbstract(MessageFormat.format(
+						"Preliminares de las Actas de las {0}. Los preliminares de las actas incluyen "
+						+ "información adicional sobre las jornadas, tales como la presentación de las jornadas, "
+						+ "los comités participantes, las conferencias invitadas, o los agradecimientos, entre "
+						+ "otras secciones.",
+						edition.getFullName()));
+		logger.debug(MessageFormat.format("Creating collection for ''{0}''", preliminaries.getName()));
+		DSCollection preliminariesCollection = DSCollection.createCollection(dsRoot, editionCommunity, preliminaries);
+		logger.info(MessageFormat.format("Created collection for ''{0}'' with UUID ''{1}''", preliminariesCollection.getName(), preliminariesCollection.getUuid()));
+		// @formatter:on
+
+		return preliminariesCollection;
+	}
+	
+	private Optional<DSCollection> getTrackCollection(DSCommunity editionCommunity, Track track) {
+		if (track.getSistedesUuid() == null) {
+			return Optional.empty();
 		}
+		DSCollection trackCollection = dsRoot.getCollectionsEndpoint().getCollection(track.getSistedesUuid());
+		logger.info(MessageFormat.format("Found collection for ''{0}'' with UUID ''{1}''", trackCollection.getName(), trackCollection.getUuid()));
+		return Optional.of(trackCollection);
+	}
+
+	private DSCollection createTrackCollection(DSCommunity editionCommunity, Track track) {
+		logger.debug(MessageFormat.format("Creating collection for ''{0}''", track.getName()));
+		DSCollection trackCollection = DSCollection.createCollection(dsRoot, editionCommunity, track);
+		logger.info(MessageFormat.format("Created collection for ''{0}'' with UUID ''{1}''", trackCollection.getName(), trackCollection.getUuid()));
 		return trackCollection;
 	}
 
@@ -384,8 +397,7 @@ class PublishEditionCommand implements Callable<Integer> {
 		});
 	}
 
-	private static File createPdfFile(String title, File originalFile) {
-		File pdfFile = new File(FilenameUtils.removeExtension(originalFile.getAbsolutePath()) + ".pdf");
+	private void writePdfFile(String title, File originalFile, File pdfFile) {
 		try {
 			// Convert Markdown to HTML
 			String htmlString = "<title>" + title + "</title>\n" + new Markdown4jProcessor().process(originalFile);
@@ -406,7 +418,6 @@ class PublishEditionCommand implements Callable<Integer> {
 		} catch (IOException | DocumentException e) {
 			logger.error(MessageFormat.format("Unable to convert ''{0}'' to PDF", originalFile));
 		}
-		return pdfFile;
 	}
 
 	/*

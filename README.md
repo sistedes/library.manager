@@ -8,19 +8,27 @@ The process to produce a new set of proceedings is typically as follows:
 
 0. **Import the conference data** from EasyChair using the `init` command. A set of JSON metadata files will be created with the conference data.
 
-1. **Manually adjust** the generated JSON files to complete the information required by the proceedings. Some actions that must be taken are:
+1. **Manually adjust** the generated JSON files to complete the information required for the proceedings. Some actions that must be taken are:
 
     * Adjust the edition information in the edition file.
 
     * Add the needed _Preliminaries_ for the conference proceedings (typically _Preface_, _Commitees_, and _Invited talk_). Pay special attention to the `id` and `filename` properties to avoid overwriting files on each execution.
 
-    * Use the list`subcommand to generate listings and detect issues that must be manually fixed. E.g., remove clarifications between parentheses about the type of paper --e.g., abstract, summary, etc.--, detect authors with inconsistent e-mails, ORCIDs or names, etc.
+    * Use the `list` subcommand to generate listings and detect issues that must be manually fixed. E.g., remove clarifications between parentheses about the type of paper --e.g., abstract, summary, etc.--, detect authors with inconsistent e-mails, ORCIDs or names, etc.
 
     * NOTE: the `submissions` property inside the authors' signature in submission files is not used to produce the proceedings, and it is included only for informative purposes while manually editing the files.
 
-2. **Synchronize the authors' list** with the _Sistedes Digital Library_ using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). In order to finish the publication, it is necessary to run the `sync-authors` command with the `--curate` option (or run the `curate-authors` command separately, or run the needed curation tasks manually from the DSpace UI).
+2. **Synchronize the authors' list** with the _Sistedes Digital Library_ using the `sync-authors` command. This process will try to identify which authors already exist in the database. If so, the match will be stored locally using the `sistedesUuid` property. Non-existing authors will be created, and the `sistedesUuid` of the newly created author will be stored too. New authors can be created either "public" or "private" (i.e., visible only by administrators). 
 
-3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take a few minutes. The proceedings can be created either "public" or "private". In order to finish the publication, it is necessary to run the `publish` command with the `--curate` option (or run the needed curation tasks manually from the DSpace UI).
+    The synchronization can be aborted at any time. Authors that already have a `sistedesUuid` in its metadata file will be considered as already synchronized and will be skipped.
+
+    Also note that, to produce the final proceedings, it is necessary to run the `sync-authors` command with the `--curate` option (or run the `curate-authors` command separately, or run the needed curation tasks manually from the DSpace UI).
+
+3. **Publish the proceedings**. Once the authors have been matched/created, the proceedings can be produced using the `publish` command. The documents are published one at a time, and the process can take long time. The proceedings can be created either "public" or "private".
+
+    The process can be stopped at any time without loosing its progress. Tracks and documents with a `sistedesUuid` will be considered as already uploaded and won't be recreated. Nevertheless, the documents will be inspected to check that bundles have been correctly uploaded and authorships have been correctly registered.
+
+    To produce the final proceedings, it is necessary to run the `publish` command with the `--curate` option (or run the needed curation tasks manually from the DSpace UI).
 
 4. **Make authors public (if they were created as private)**. If authors are created as private, they must be published using the _Make public_ ("Hacer público") curation task on the `Archivo documental de Sistedes > Autores` collection.
 
@@ -83,9 +91,7 @@ Commands:
                         match existing authors in the library with local
                         authors. In case the authors do not exist in the
                         library, creates them. Already identified authors will
-                        be skipped when running in normal mode. In forced mode,
-                        information about  already identified authors will be
-                        discarded and a new match will be attempted.
+                        be skipped when running in normal mode.
   validate            Validates that the conference data is ready for
                         submission without performing any modification.
   publish             Publishes the specified edition in the Sistedes Digital
@@ -112,13 +118,13 @@ Next, we describe the CLI options for each subcommand.
 
 ### Initiliaze metadata (`init`)
 
-As aforementioned, this command takes an EasyChair dump file, and initializes a set of JSON files (together with the corresponding submission files) in the specified directory. These JSON files can be later refined to produce the full proceedings. This command will try to detect the type of submission (either `abstract` or `paper`) based on the number of pages of the associated PDF file. In case of doubt, the user will be presented the list of custom tags used in EasyChair and asked to make a decision.
+As aforementioned, this command takes an EasyChair dump file, and initializes a set of JSON files (together with the corresponding submission files) in the specified directory. These JSON files can be later refined to produce the full proceedings. It is necessary to specify which types of submissions (based on EasyChair form fields) are papers and which ones are abstracts using the `--abstracts` and `--papers` options.
 
 ```
-Usage: java -jar <this-file.jar> init [-F] -a=ACRONYM [-i=DIR] [-o=DIR]
-                                      [-p=PATTERN] -P=PREFIX -x=FILE -y=YEAR
-                                      -A=KEY-VALUE [-A=KEY-VALUE]...
-                                      -R=KEY-VALUE [-R=KEY-VALUE]...
+Usage: java -jar <this-file.jar> init -a=ACRONYM [-i=DIR] [-o=DIR] [-p=PATTERN]
+                                      -P=PREFIX -x=FILE -y=YEAR -A=KEY-VALUE
+                                      [-A=KEY-VALUE]... -R=KEY-VALUE
+                                      [-R=KEY-VALUE]...
 Initializes the JSON files required to generate the proceedings of a Sistedes
 conference from EasyChair data.
   -a, --acronym=ACRONYM    Acronym of the conference to be prepared.
@@ -128,12 +134,10 @@ conference from EasyChair data.
                              submission is an abstract. E.g.
                              'Category=Published'. This parameter may be used
                              as many times as needed.
-  -F, --force              Force execution, even if submission files are
-                             overwritten.
   -i, --input=DIR          Input directory where the source PDF files must be
                              looked for.
   -o, --output=DIR         Ouput directory where the generated conference files
-                             should be placed.
+                             should be placed. The directory MUST be empty.
   -p, --pattern=PATTERN    Pattern describing the names of the submission
                              files. {acronym} {year} and {id} will be
                              substituted by the corresponding values. Default
@@ -147,7 +151,6 @@ conference from EasyChair data.
   -x, --xslx=FILE          XSLX file as downloaded from the EasyChair
                              'Conference data download' menu.
   -y, --year=YEAR          Year of the edition to be prepared.
-
 ```
 
 
@@ -156,14 +159,12 @@ conference from EasyChair data.
 Synchronizes the authors information between the local submissions and the _Sistedes Digital Library_, trying to match existing authors in the library with local authors. In case the authors do not exist in the library, it creates them. Identifiers of the authors in the _Sistedes Digital Library_ (whether they are newly created or already existing) will be saved locally for a later use during the publication of the proceedings. In case of doubt, and when running in `interactive` mode, the user will be asked whether found authors are a match or not. This command may take some time.
 
 ```
-Usage: java -jar <this-file.jar> sync-authors [-acFir] -e=E-MAIL -f=DIR
+Usage: java -jar <this-file.jar> sync-authors [-acir] -e=E-MAIL -f=DIR
        -p=PASSWORD -u=URI
 Synchronizes the authors information between the local submissions and the
 Sistedes Digital Library, trying to match existing authors in the library with
 local authors. In case the authors do not exist in the library, creates them.
-Already identified authors will be skipped when running in normal mode. In
-forced mode, information about  already identified authors will be discarded
-and a new match will be attempted.
+Already identified authors will be skipped when running in normal mode.
   -a, --admin-only          Create new authors with administrator-only
                               permissions (i.e., hidden to the general public).
   -c, --curate              Also launch curation tasks that may be applicable
@@ -172,9 +173,6 @@ and a new match will be attempted.
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=DIR    JSON file including the conference edition metadata.
-  -F, --force               Force execution, discarding existing information
-                              about identified authors already existing in the
-                              Sistedes Digital Library.
   -i, --interactive         Ask interactively whether the found element (when
                               in doubt) is a match or not.
   -p, --password=PASSWORD   Password of the account in the Sistedes Digital
@@ -199,7 +197,7 @@ any modification.
 Publishes the conference proceedings in the _Sistedes Digital Library_, publishing one document at a time. This may take some time.
 
 ```
-Usage: java -jar <this-file.jar> publish [-acF] -e=E-MAIL -f=FILE -p=PASSWORD
+Usage: java -jar <this-file.jar> publish [-ac] -e=E-MAIL -f=FILE -p=PASSWORD
        -u=URI
 Publishes the specified edition in the Sistedes Digital Library. Published
 elements will be recorded locally to avoid recreating them.
@@ -207,13 +205,11 @@ elements will be recorded locally to avoid recreating them.
                               hidden to the general public).
   -c, --curate              Also launch curation tasks that may be applicable
                               to the newly created communities, collections and
-                              items (i.e., filtermedia, generatecitation,
-                              generatebibcitation).
+                              items (i.e., registerexternalhandle, filtermedia,
+                              generatecitation, generatebibcitation).
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.
-  -F, --force               Force execution, even if elements have been already
-                              created or if validation errors exist.
   -p, --password=PASSWORD   Password of the account in the Sistedes Digital
                               Library.
   -u, --uri=URI             URI of the root endpoint of the DSpace API.
@@ -244,9 +240,8 @@ Generates different listings of the conference data.
 Splits a single PDF file containing the full proceedings of a conference and sets up the JSON files required to generate the proceedings in the new Digital Library.
 
 ```
-Usage: java -jar <this-file.jar> split [-F] -a=ACRONYM [-c=PAGES] [-f=PAGES]
-                                       -i=FILE [-o=DIR] -P=PREFIX [-u=URL]
-                                       -y=YEAR
+Usage: java -jar <this-file.jar> split -a=ACRONYM [-c=PAGES] [-f=PAGES] -i=FILE
+                                       [-o=DIR] -P=PREFIX [-u=URL] -y=YEAR
 (EXPERIMENTAL) Splits a single PDF file containing the full proceedings of a
 conference and sets up the JSON files required to generate the proceedings in
 the new Digital Library.
@@ -265,8 +260,6 @@ the new Digital Library.
                             section starts and optionally, ends, if a range
                             (inclusive) is specified. The last element of the
                             list must always be a range. E.g.: 1,3,4-5
-  -F, --force             Force execution, even if submission files are
-                            overwritten.
   -i, --input=FILE        Input PDF file with the full proceedings.
   -o, --output=DIR        Ouput directory where the generated conference files
                             should be placed.
