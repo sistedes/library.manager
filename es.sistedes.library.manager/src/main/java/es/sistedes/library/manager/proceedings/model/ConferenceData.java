@@ -245,16 +245,18 @@ public class ConferenceData {
 			submission.getSignatures().forEach(signature -> {
 				// @formatter:off
 				Integer id = signature.getAuthor();
+				Author author;
 				if (authors.containsKey(id)) { 
-					authors.get(id).getSignatures().add(signature);
+					author = authors.get(id);
+					author.getSignatures().add(signature);
 				} else {
-					Author author = new Author() {{ 
+					author = new Author() {{ 
 						setId(signature.getAuthor()); 
 						getSignatures().add(signature);
 					}};
-					author.getSubmissions().add(submission);
 					authors.put(id, author);
 				}
+				author.getSubmissions().add(submission);
 				// @formatter:on
 			});
 		});
