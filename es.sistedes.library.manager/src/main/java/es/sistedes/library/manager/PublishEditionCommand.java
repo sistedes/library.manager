@@ -44,6 +44,7 @@ import es.sistedes.library.manager.dspace.model.DSBundle;
 import es.sistedes.library.manager.dspace.model.DSCollection;
 import es.sistedes.library.manager.dspace.model.DSCommunity;
 import es.sistedes.library.manager.dspace.model.DSItem;
+import es.sistedes.library.manager.dspace.model.DSProcess;
 import es.sistedes.library.manager.dspace.model.DSProcess.DSParameter;
 import es.sistedes.library.manager.dspace.model.DSPublication;
 import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
@@ -140,19 +141,35 @@ class PublishEditionCommand implements Callable<Integer> {
 		
 		// @formatter:off
 		if (curate) {
-			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+			DSProcess process;
+			process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "registerexternalhandle"), 
 					new DSParameter("-i", editionCommunity.getHandle()),
 					new DSParameter("-p", "force=true")));
-			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+			
+			logger.info(MessageFormat.format("Process ''curate registerexternalhandle'' created with id ''{0}'' and status ''{1}''", 
+					process.getProcessId(), process.getProcessStatus()));
+
+			process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "filtermedia"), 
 					new DSParameter("-i", editionCommunity.getHandle())));
-			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+			
+			logger.info(MessageFormat.format("Process ''curate filtermedia'' created with id ''{0}'' and status ''{1}''", 
+					process.getProcessId(), process.getProcessStatus()));
+			
+			process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "generatecitation"), 
 					new DSParameter("-i", editionCommunity.getHandle())));
-			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+
+			logger.info(MessageFormat.format("Process ''curate generatecitation'' created with id ''{0}'' and status ''{1}''", 
+					process.getProcessId(), process.getProcessStatus()));
+
+			process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "generatebibcitation"), 
 					new DSParameter("-i", editionCommunity.getHandle())));
+
+			logger.info(MessageFormat.format("Process ''curate generatebibcitation'' created with id ''{0}'' and status ''{1}''", 
+					process.getProcessId(), process.getProcessStatus()));
 		}
 		// @formatter:on
 
