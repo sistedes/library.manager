@@ -72,8 +72,8 @@ class DiscardUuidsCommand implements Callable<Integer> {
 			conferenceData.getTracks().values().forEach(track -> {
 				track.setSistedesUuid(null);
 				track.setInternalHandle(null);
+				track.save();
 			});
-			conferenceData.getTracks().save();
 		}
 		if (preliminaries) {
 			conferenceData.getEdition().setPreliminariesSistedesUuid(null);

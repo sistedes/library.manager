@@ -129,7 +129,7 @@ public class ConferenceData {
 	 * 
 	 * @return
 	 */
-	public TracksIndex getTracks() {
+	public Map<Integer, Track> getTracks() {
 		if (tracksIndex == null) {
 			tracksIndex = TracksIndex.create(edition.getTracksFile(), Collections.emptyList());
 		}
