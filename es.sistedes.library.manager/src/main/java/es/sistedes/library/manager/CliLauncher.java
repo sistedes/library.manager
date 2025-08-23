@@ -23,7 +23,8 @@ public class CliLauncher {
 			description = "Manage the Sistedes Digital Library.",
 			mixinStandardHelpOptions = true, version = "20250819.0",
 			subcommands = { InitializeCommand.class, SyncAuthorsCommand.class, ValidateCommand.class, 
-					PublishEditionCommand.class, ListCommand.class, SplitCommand.class, CurateAuthorsCommand.class })
+					PublishEditionCommand.class, ListCommand.class, CurateAuthorsCommand.class,
+					DiscardUuidsCommand.class, SplitCommand.class, })
 	// @formatter:on
 	static class Commands {
 		@Spec

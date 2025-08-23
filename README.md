@@ -83,30 +83,31 @@ Manage the Sistedes Digital Library.
   -h, --help      Show this help message and exit.
   -V, --version   Print version information and exit.
 Commands:
-  init                Initializes the JSON files required to generate the
-                        proceedings of a Sistedes conference from EasyChair
-                        data.
-  sync-authors        Synchronizes the authors information between the local
-                        submissions and the Sistedes Digital Library, trying to
-                        match existing authors in the library with local
-                        authors. In case the authors do not exist in the
-                        library, creates them. Already identified authors will
-                        be skipped when running in normal mode.
-  validate            Validates that the conference data is ready for
-                        submission without performing any modification.
-  publish             Publishes the specified edition in the Sistedes Digital
-                        Library. Published elements will be recorded locally to
-                        avoid recreating them.
-  list                Generates different listings of the conference data.
-  split               (EXPERIMENTAL) Splits a single PDF file containing the
-                        full proceedings of a conference and sets up the JSON
-                        files required to generate the proceedings in the new
-                        Digital Library.
-  curate-authors      Launches all the curation tasks that may be applicable to
-                        newly created authors in the Sistedes Digital Library.
-                        Since the process is executed asynchonously by DSpace,
-                        no feedback about the execution result is given. The
-                        DSpace UI can be used to get more feedback.
+  init            Initializes the JSON files required to generate the
+                    proceedings of a Sistedes conference from EasyChair data.
+  sync-authors    Synchronizes the authors information between the local
+                    submissions and the Sistedes Digital Library, trying to
+                    match existing authors in the library with local authors.
+                    In case the authors do not exist in the library, creates
+                    them. Already identified authors will be skipped when
+                    running in normal mode.
+  validate        Validates that the conference data is ready for submission
+                    without performing any modification.
+  publish         Publishes the specified edition in the Sistedes Digital
+                    Library. Published elements will be recorded locally to
+                    avoid recreating them.
+  list            Generates different listings of the conference data.
+  curate-authors  Launches all the curation tasks that may be applicable to
+                    newly created authors in the Sistedes Digital Library.
+                    Since the process is executed asynchonously by DSpace, no
+                    feedback about the execution result is given. The DSpace UI
+                    can be used to get more feedback.
+  discard-uuids   Deletes the Sistedes UUIDs for the specified elements of the
+                    proceedings.
+  split           (EXPERIMENTAL) Splits a single PDF file containing the full
+                    proceedings of a conference and sets up the JSON files
+                    required to generate the proceedings in the new Digital
+                    Library.
 ```
 
 Next, we describe the CLI options for each subcommand.
@@ -168,8 +169,6 @@ Already identified authors will be skipped when running in normal mode.
   -e, --email=E-MAIL        E-mail of the account required to log in the
                               Sistedes Digital Library to create the authors.
   -f, --edition-file=DIR    JSON file including the conference edition metadata.
-  -F, --force               Discard stored information about already processed
-                              authors and force re-sync.
   -i, --interactive         Ask interactively whether the found element (when
                               in doubt) is a match or not.
   -p, --password=PASSWORD   Password of the account in the Sistedes Digital
@@ -229,6 +228,21 @@ Generates different listings of the conference data.
                             List the authors that have more than one different
                               ORCID in his/her signature.
   -t, --paper-titles        List all the titles of the papers.
+```
+
+### Discard processed elements (`discard-uuids`)
+
+Removes the UUIDs in the metadata JSON files for the selected elements.
+
+```
+Usage: java -jar <this-file.jar> discard-uuids -aepst -f=FILE
+Deletes the Sistedes UUIDs for the specified elements of the proceedings.
+  -a, --authors             Discard stored UUID for the authors.
+  -e, --edition             Discard stored UUID for the edition.
+  -f, --edition-file=FILE   JSON file including the conference edition metadata.
+  -p, --preliminaries       Discard stored UUID for the preliminaries.
+  -s, --submissions         Discard stored UUID for the submission.
+  -t, --tracks              Discard stored UUID for the tracks.
 ```
 
 ### EXPERIMENTAL: Split PDF file (`split`)
