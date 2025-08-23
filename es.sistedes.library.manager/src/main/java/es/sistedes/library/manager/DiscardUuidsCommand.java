@@ -14,9 +14,6 @@ package es.sistedes.library.manager;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.proceedings.model.ConferenceData;
 import picocli.CommandLine.Command;
@@ -30,8 +27,6 @@ import picocli.CommandLine.Spec;
 		description = "Deletes the Sistedes UUIDs for the specified elements of the proceedings.")
 // @formatter:on
 class DiscardUuidsCommand implements Callable<Integer> {
-
-	private static final Logger logger = LoggerFactory.getLogger(DiscardUuidsCommand.class);
 
 	@ParentCommand
 	private Commands mainCmd;
