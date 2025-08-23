@@ -164,6 +164,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					deleteReadResourcePolicies(dsAuthor.getUuid());
 				}
 				author.setSistedesUuid(dsAuthor.getUuid());
+				author.save();
 				logger.info(MessageFormat.format("Created Author for ''{0}''", author));
 			} else {
 				// We may update an existing author
@@ -235,9 +236,10 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					// Clear the locally stored UUID so that the author is re-processed in the next run
 					author.setSistedesUuid(null);
 					throw e;
+				} finally {
+					author.save();
 				}
 			}
-			author.save();
 		}
 	}
 
