@@ -240,10 +240,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 					throw e;
 				}
 			}
-			author.getSubmissions().forEach(submission -> {
-				submission.save();
-				logger.debug(MessageFormat.format("Submission ''{0}'' of author ''{1}'' saved", submission.getId(), author.getId()));
-			});
+			author.save();
 		}
 	}
 

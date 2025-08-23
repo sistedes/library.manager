@@ -11,12 +11,18 @@
 
 package es.sistedes.library.manager.proceedings.model;
 
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Author {
 
+	private static final Logger logger = LoggerFactory.getLogger(Author.class);
+	
 	protected Integer id;
 	
 	protected String orcid;
@@ -98,5 +104,12 @@ public class Author {
 	@Override
 	public String toString() {
 		return signatures.stream().map(s -> s.toString()).collect(Collectors.joining("; "));
+	}
+	
+	public void save() {
+		getSubmissions().forEach(submission -> {
+			submission.save();
+			logger.debug(MessageFormat.format("Submission ''{0}'' of author ''{1}'' saved", submission.getId(), getId()));
+		});
 	}
 }
