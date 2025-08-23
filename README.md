@@ -235,8 +235,9 @@ Generates different listings of the conference data.
 Removes the UUIDs in the metadata JSON files for the selected elements.
 
 ```
-Usage: java -jar <this-file.jar> discard-uuids -aepst -f=FILE
+Usage: java -jar <this-file.jar> discard-uuids [-aepst] -f=FILE
 Deletes the Sistedes UUIDs for the specified elements of the proceedings.
+Internal handles are also deleted.
   -a, --authors             Discard stored UUID for the authors.
   -e, --edition             Discard stored UUID for the edition.
   -f, --edition-file=FILE   JSON file including the conference edition metadata.

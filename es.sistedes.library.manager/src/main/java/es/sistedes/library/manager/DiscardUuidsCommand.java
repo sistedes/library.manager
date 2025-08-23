@@ -24,7 +24,7 @@ import picocli.CommandLine.Spec;
 
 // @formatter:off
 @Command(name = "discard-uuids", 
-		description = "Deletes the Sistedes UUIDs for the specified elements of the proceedings.")
+		description = "Deletes the Sistedes UUIDs for the specified elements of the proceedings. Internal handles are also deleted.")
 // @formatter:on
 class DiscardUuidsCommand implements Callable<Integer> {
 
@@ -65,16 +65,22 @@ class DiscardUuidsCommand implements Callable<Integer> {
 		}
 		if (edition) {
 			conferenceData.getEdition().setSistedesUuid(null);
+			conferenceData.getEdition().setInternalHandle(null);
 			conferenceData.getEdition().save();
 		}
 		if (tracks) {
 			conferenceData.getTracks().values().forEach(track -> {
 				track.setSistedesUuid(null);
+				track.setInternalHandle(null);
 			});
 			conferenceData.getTracks().save();
 		}
 		if (preliminaries) {
+			conferenceData.getEdition().setPreliminariesSistedesUuid(null);
+			conferenceData.getEdition().setPreliminariesInternalHandle(null);
+			conferenceData.getEdition().save();
 			conferenceData.getPreliminaries().values().forEach(prelim -> {
+				prelim.setInternalHandle(null);
 				prelim.setSistedesUuid(null);
 				prelim.save();
 			});
@@ -82,6 +88,7 @@ class DiscardUuidsCommand implements Callable<Integer> {
 		if (submissions) {
 			conferenceData.getSubmissions().values().forEach(submission -> {
 				submission.setSistedesUuid(null);
+				submission.setInternalHandle(null);
 				submission.save();
 			});
 		}
