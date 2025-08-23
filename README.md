@@ -69,7 +69,7 @@ It is possible to run the aforementioned commands in batch mode for all the Sist
 
 2. Adjust all the environment variables to the conferences and editions to be published.
 
-3. Run `execute.bat` using any of the following subcommands: `init`, `list`, `sync-authors`, `publish`, `validate`.
+3. Run `execute.bat` using any of the following subcommands: `init`, `list`, `sync-authors`, `publish`, `validate`, `discard-all-uuids`.
 
 ## Command line interface
 

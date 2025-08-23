@@ -36,9 +36,10 @@ IF "%1"=="list" GOTO LIST
 IF "%1"=="sync-authors" GOTO SYNC_AUTHORS
 IF "%1"=="publish" GOTO PUBLISH
 IF "%1"=="validate" GOTO VALIDATE
+IF "%1"=="discard-uuids" GOTO DISCARD
 
 ECHO ERROR: Must provide exactly one of the following subcommands:
-ECHO init, list, sync-authors, publish, validate
+ECHO init, list, sync-authors, publish, validate, discard-uuids
 
 GOTO END
 
@@ -99,6 +100,16 @@ java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
 ECHO Validating JCIS 
 java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%  || GOTO FAIL
 ECHO Validating PROLE 
+java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
+GOTO END
+
+:DISCARD
+SET COMMON_OPTS=discard-uuids -a -e -p -s -t
+ECHO Discarding JISBD UUIDs 
+java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
+ECHO Discarding JCIS UUIDs 
+java -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%  || GOTO FAIL
+ECHO Discarding PROLE UUIDs 
 java -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
 GOTO END
 
