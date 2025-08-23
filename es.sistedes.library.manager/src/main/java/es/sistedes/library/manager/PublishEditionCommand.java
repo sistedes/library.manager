@@ -142,7 +142,8 @@ class PublishEditionCommand implements Callable<Integer> {
 		if (curate) {
 			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "registerexternalhandle"), 
-					new DSParameter("-i", editionCommunity.getHandle())));
+					new DSParameter("-i", editionCommunity.getHandle()),
+					new DSParameter("-p", "force=true")));
 			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
 					new DSParameter("-t", "filtermedia"), 
 					new DSParameter("-i", editionCommunity.getHandle())));
