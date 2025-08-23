@@ -45,7 +45,7 @@ class ListCommand implements Callable<Integer> {
 	@Option(names = { "-f", "--edition-file" }, paramLabel = "FILE", required = true, description = "JSON file including the conference edition metadata.")
 	private File editionFile;
 
-	@Option(names = { "-t", "--paper-titles" }, description = "List all the titles of the papers.")
+	@Option(names = { "-p", "--paper-titles" }, description = "List all the titles of the papers alphabetically grouped per track.")
 	private boolean paperTitles = false;
 	
 	@Option(names = { "-n", "--authors-with-different-names" }, description = "List the authors that have more than one different name in his/her signature.")
@@ -58,7 +58,7 @@ class ListCommand implements Callable<Integer> {
 	@Option(names = { "-o",
 	"--authors-with-different-orcids" }, description = "List the authors that have more than one different ORCID in his/her signature.")
 	private boolean authorsWithDifferentOrcids = false;
-
+	
 	private ConferenceData conferenceData;
 
 	@Override
@@ -75,8 +75,12 @@ class ListCommand implements Callable<Integer> {
 	}
 	
 	public static void listPaperTitles(ConferenceData conferenceData) {
-		conferenceData.getSubmissions().values().stream().forEach(submission-> {
-			System.out.println(MessageFormat.format("Submission ''{0,number,#}'' has title: {1}", submission.getId(), submission.getTitle()));
+		conferenceData.getTracks().values().forEach(track -> {
+			System.out.println(MessageFormat.format("Listing {0} papers in track ''{1}''", track.getSubmissions().size(), track.getName()));
+			track.getSubmissions().stream().map(sn -> conferenceData.getSubmissions().get(sn))
+					.sorted((s1, s2) -> StringUtils.compare(s1.getTitle(), s2.getTitle())).forEach(submission -> {
+						System.out.println(MessageFormat.format("Submission ''{0,number,#}'' has title: {1}", submission.getId(), submission.getTitle()));
+					});
 		});
 	}
 

@@ -55,7 +55,7 @@ java -jar target/%JAR% %COMMON_OPTS% -a %PROLE% -i "%INPUT_DIR%/%PROLE%" -o "%OU
 GOTO END
 
 :LIST
-SET COMMON_OPTS=list -t -n -e -o
+SET COMMON_OPTS=list -p -n -e -o
 ECHO Listing JISBD
 java -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
 ECHO Listing JCIS
