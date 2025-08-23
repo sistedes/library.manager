@@ -84,12 +84,6 @@ class CurateAuthorsCommand implements Callable<Integer> {
 		logger.info(MessageFormat.format("Process ''curate refreshsistedesauthortitle'' created with id ''{0}'' and status ''{1}''",
 				process.getProcessId(), process.getProcessStatus()));
 
-		process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-				new DSParameter("-t", "setorcidauthenticated"), 
-				new DSParameter("-i", "11705/2")));
-		
-		logger.info(MessageFormat.format("Process ''curate setorcidauthenticated'' created with id ''{0}'' and status ''{1}''",
-				process.getProcessId(), process.getProcessStatus()));
 		// @formatter:on
 	}
 }
