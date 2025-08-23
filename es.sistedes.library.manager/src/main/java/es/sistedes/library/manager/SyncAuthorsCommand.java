@@ -19,7 +19,6 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +33,6 @@ import com.simplenamematcher.SimpleNameMatcher;
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.DSpaceConnectionManager.DSpaceConnection;
 import es.sistedes.library.manager.dspace.model.DSAuthor;
-import es.sistedes.library.manager.dspace.model.DSProcess.DSParameter;
 import es.sistedes.library.manager.dspace.model.DSResourcePolicy;
 import es.sistedes.library.manager.dspace.model.DSRoot;
 import es.sistedes.library.manager.proceedings.model.Author;
@@ -123,9 +121,7 @@ class SyncAuthorsCommand implements Callable<Integer> {
 		
 		// @formatter:off
 		if (curate) {
-			dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-					new DSParameter("-t", "refreshsistedesauthortitle"), 
-					new DSParameter("-i", "11705/2")));
+			CurateAuthorsCommand.curate(dsRoot);
 		}
 		// @formatter:on
 		

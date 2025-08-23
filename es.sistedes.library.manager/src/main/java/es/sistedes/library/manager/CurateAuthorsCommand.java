@@ -68,15 +68,28 @@ class CurateAuthorsCommand implements Callable<Integer> {
 		connection = DSpaceConnectionManager.createConnection(uri, email, password);
 		dsRoot = connection.getDsRoot();
 		
-		// @formatter:off
-		DSProcess process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
-						new DSParameter("-t", "refreshsistedesauthortitle"), 
-						new DSParameter("-i", "11705/2")));
-		// @formatter:on
-		
-		logger.info(MessageFormat.format("Process ''curate'' created with id ''{0}'' and status ''{1}''", process.getProcessId(), process.getProcessStatus()));
+		curate(dsRoot);
 		
 		// Return success
 		return 0;
+	}
+
+	public static void curate(DSRoot dsRoot) {
+		// @formatter:off
+		DSProcess process;
+		process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+						new DSParameter("-t", "refreshsistedesauthortitle"), 
+						new DSParameter("-i", "11705/2")));
+
+		logger.info(MessageFormat.format("Process ''curate refreshsistedesauthortitle'' created with id ''{0}'' and status ''{1}''",
+				process.getProcessId(), process.getProcessStatus()));
+
+		process = dsRoot.getScriptsEndpoint().executeScript("curate", Arrays.asList(
+				new DSParameter("-t", "setorcidauthenticated"), 
+				new DSParameter("-i", "11705/2")));
+		
+		logger.info(MessageFormat.format("Process ''curate setorcidauthenticated'' created with id ''{0}'' and status ''{1}''",
+				process.getProcessId(), process.getProcessStatus()));
+		// @formatter:on
 	}
 }
