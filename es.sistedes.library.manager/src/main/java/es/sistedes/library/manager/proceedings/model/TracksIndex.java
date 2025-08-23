@@ -106,6 +106,7 @@ public class TracksIndex extends AbstractProceedingsElement implements Map<Integ
 		}
 		this.remove(key);
 		tracks.add(value);
+		tracks.sort((v1, v2) -> Integer.compare(v1.getId(), v2.getId()));
 		return returnValue;
 	}
 
@@ -153,7 +154,6 @@ public class TracksIndex extends AbstractProceedingsElement implements Map<Integ
 	}
 	
 	public void save() {
-		tracks.sort((v1, v2) -> Integer.compare(v1.getId(), v2.getId()));
 		JsonMapper mapper = JsonMapper.builder().build();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.setSerializationInclusion(Include.NON_EMPTY);
