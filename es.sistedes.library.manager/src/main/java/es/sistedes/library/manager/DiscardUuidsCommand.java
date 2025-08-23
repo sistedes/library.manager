@@ -37,19 +37,19 @@ class DiscardUuidsCommand implements Callable<Integer> {
 	@Option(names = { "-f", "--edition-file" }, paramLabel = "FILE", required = true, description = "JSON file including the conference edition metadata.")
 	private File editionFile;
 
-	@Option(names = { "-a", "--authors" }, paramLabel = "FILE", required = true, description = "Discard stored UUID for the authors.")
+	@Option(names = { "-a", "--authors" }, description = "Discard stored UUID for the authors.")
 	private boolean authors;
 	
-	@Option(names = { "-e", "--edition" }, paramLabel = "FILE", required = true, description = "Discard stored UUID for the edition.")
+	@Option(names = { "-e", "--edition" }, description = "Discard stored UUID for the edition.")
 	private boolean edition;
 	
-	@Option(names = { "-t", "--tracks" }, paramLabel = "FILE", required = true, description = "Discard stored UUID for the tracks.")
+	@Option(names = { "-t", "--tracks" }, description = "Discard stored UUID for the tracks.")
 	private boolean tracks;
 	
-	@Option(names = { "-p", "--preliminaries" }, paramLabel = "FILE", required = true, description = "Discard stored UUID for the preliminaries.")
+	@Option(names = { "-p", "--preliminaries" }, description = "Discard stored UUID for the preliminaries.")
 	private boolean preliminaries;
 	
-	@Option(names = { "-s", "--submissions" }, paramLabel = "FILE", required = true, description = "Discard stored UUID for the submission.")
+	@Option(names = { "-s", "--submissions" }, description = "Discard stored UUID for the submission.")
 	private boolean submissions;
 	
 	private ConferenceData conferenceData;
