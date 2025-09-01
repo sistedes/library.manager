@@ -35,13 +35,13 @@
 		<poi.version>5.2.3</poi.version>
 		<handle.version>9.3.0</handle.version>
 		<jtidy.version>1.0.5</jtidy.version>
-		<markdown4j.version>2.2-cj-1.1</markdown4j.version>
 		<flying-saucer-pdf.version>9.1.22</flying-saucer-pdf.version>
 		<pdfbox.version>2.0.29</pdfbox.version>
 		<jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
 		<jakarta-xml-bind-api.version>4.0.1</jakarta-xml-bind-api.version>
 		<glassfish-jaxb-runtime.version>4.0.4</glassfish-jaxb-runtime.version>
 		<flexmark-html2md-converter.version>0.64.8</flexmark-html2md-converter.version>
+		<commonmark.version>0.25.1</commonmark.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -125,11 +125,6 @@
 			<version>${jtidy.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.commonjava.googlecode.markdown4j</groupId>
-			<artifactId>markdown4j</artifactId>
-			<version>${markdown4j.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.xhtmlrenderer</groupId>
 			<artifactId>flying-saucer-pdf</artifactId>
 			<version>${flying-saucer-pdf.version}</version>
@@ -143,6 +138,11 @@
 			<groupId>com.vladsch.flexmark</groupId>
 			<artifactId>flexmark-html2md-converter</artifactId>
 			<version>${flexmark-html2md-converter.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.commonmark</groupId>
+		    <artifactId>commonmark</artifactId>
+		    <version>${commonmark.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

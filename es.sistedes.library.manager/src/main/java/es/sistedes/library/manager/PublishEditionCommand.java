@@ -12,8 +12,10 @@
 package es.sistedes.library.manager;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -28,7 +30,9 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.markdown4j.Markdown4jProcessor;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -419,7 +423,9 @@ class PublishEditionCommand implements Callable<Integer> {
 	private void writePdfFile(String title, File originalFile, File pdfFile) {
 		try {
 			// Convert Markdown to HTML
-			String htmlString = "<title>" + title + "</title>\n" + new Markdown4jProcessor().process(originalFile);
+			Parser parser = Parser.builder().build();
+			Node document = parser.parseReader(new InputStreamReader(new FileInputStream(originalFile)));
+			String htmlString = "<title>" + title + "</title>\n" + HtmlRenderer.builder().build().render(document);
 			// Cleanup HTML
 			Writer cleanHtmlWriter = new StringWriter();
 			Tidy tidy = new Tidy();
