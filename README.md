@@ -174,7 +174,8 @@ Already identified authors will be skipped when running in normal mode.
   -p, --password=PASSWORD   Password of the account in the Sistedes Digital
                               Library.
   -r, --dry-run             Do not perform any modifications.
-  -u, --uri=URI             URI of the root endpoint of the DSpace API.```
+  -u, --uri=URI             URI of the root endpoint of the DSpace API.
+```
 
 ### Validate conference data (`validate`)
 
