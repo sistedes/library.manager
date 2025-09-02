@@ -21,8 +21,8 @@ REM problems when trying to read from stdin (and moreover, there seems to
 REM be some issue with the "javax.management.MBeanTrustPermission" permission
 REM and Ant which causes exceptions in some cases).
 REM
-REM As a cons==ence, we use this script as a simple but fair enough solution to
-REM run all the r==ired commands in an automated and easy way.
+REM As a consequence, we use this script as a simple but fair enough solution to
+REM run all the required commands in an automated and easy way.
 REM
 
 setlocal
@@ -38,10 +38,11 @@ IF "%1"=="list" GOTO LIST
 IF "%1"=="sync-authors" GOTO SYNC_AUTHORS
 IF "%1"=="publish" GOTO PUBLISH
 IF "%1"=="validate" GOTO VALIDATE
-IF "%1"=="discard-uuids" GOTO DISCARD
+IF "%1"=="discard-authors-uuids" GOTO DISCARD_AUTHORS
+IF "%1"=="discard-proceedings-uuids" GOTO DISCARD_PROCEEDINGS
 
 ECHO ERROR: Must provide exactly one of the following subcommands:
-ECHO init, list, sync-authors, publish, validate, discard-uuids
+ECHO init, list, sync-authors, publish, validate, discard-authors-uuids, discard-proceedings-uuids
 
 GOTO END
 
@@ -105,7 +106,17 @@ ECHO Validating PROLE
 java %JAVA_OPTS% -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
 GOTO END
 
-:DISCARD
+:DISCARD_AUTHORS
+SET COMMON_OPTS=discard-uuids -a
+ECHO Discarding JISBD UUIDs 
+java %JAVA_OPTS% -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
+ECHO Discarding JCIS UUIDs 
+java %JAVA_OPTS% -jar target/%JAR% %COMMON_OPTS% -f %JCIS_EDITION_FILE%  || GOTO FAIL
+ECHO Discarding PROLE UUIDs 
+java %JAVA_OPTS% -jar target/%JAR% %COMMON_OPTS% -f %PROLE_EDITION_FILE% || GOTO FAIL
+GOTO END
+
+:DISCARD_PROCEEDINGS
 SET COMMON_OPTS=discard-uuids -e -p -s -t
 ECHO Discarding JISBD UUIDs 
 java %JAVA_OPTS% -jar target/%JAR% %COMMON_OPTS% -f %JISBD_EDITION_FILE% || GOTO FAIL
