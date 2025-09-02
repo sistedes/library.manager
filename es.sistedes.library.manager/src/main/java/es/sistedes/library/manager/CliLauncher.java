@@ -11,6 +11,8 @@
 
 package es.sistedes.library.manager;
 
+import com.openhtmltopdf.util.XRLog;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -38,6 +40,10 @@ public class CliLauncher {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+		{ 
+			// Generally disable verbose logging in 'com.openhtmltopdf'
+			XRLog.listRegisteredLoggers().forEach(logger -> XRLog.setLevel(logger, java.util.logging.Level.WARNING));
+		}
 		int exitCode = new CommandLine(new Commands()).execute(args);
 		System.exit(exitCode);
 	}
