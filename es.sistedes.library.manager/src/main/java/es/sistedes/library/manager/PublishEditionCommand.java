@@ -30,16 +30,16 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.w3c.tidy.Tidy;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import com.lowagie.text.DocumentException;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.pdf.converter.PdfConverterExtension;
+import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.data.DataHolder;
 
 import es.sistedes.library.manager.CliLauncher.Commands;
 import es.sistedes.library.manager.DSpaceConnectionManager.DSpaceConnection;
@@ -436,11 +436,8 @@ class PublishEditionCommand implements Callable<Integer> {
 			tidy.setOutputEncoding(StandardCharsets.UTF_8.displayName());
 			tidy.parseDOM(new StringReader(htmlString), cleanHtmlWriter);
 			// Convert to PDF
-			ITextRenderer renderer = new ITextRenderer();
-			renderer.setDocumentFromString(cleanHtmlWriter.toString());
-			renderer.layout();
-			renderer.createPDF(new FileOutputStream(pdfFile));
-		} catch (IOException | DocumentException e) {
+			PdfConverterExtension.exportToPdf(new FileOutputStream(pdfFile), cleanHtmlWriter.toString(), "", DataHolder.NULL);
+		} catch (IOException e) {
 			logger.error(MessageFormat.format("Unable to convert ''{0}'' to PDF", originalFile));
 		}
 	}
