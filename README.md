@@ -141,9 +141,8 @@ conference from EasyChair data.
   -P, --prefix=PREFIX      Handle prefix.
   -R, --papers=KEY-VALUE   Form fields (in the form of 'key=value' with NO
                              SPACES around =) which denote that a given
-                             submission is a paper. E.g. 'Category=Full
-                             Paper'. This parameter may be used as many times
-							 as needed.
+                             submission is a paper. E.g. 'Category=Full Paper'.
+                             This parameter may be used as many times as needed.
   -x, --xslx=FILE          XSLX file as downloaded from the EasyChair
                              'Conference data download' menu.
   -y, --year=YEAR          Year of the edition to be prepared.
@@ -216,7 +215,7 @@ elements will be recorded locally to avoid recreating them.
 Produce some listings that may be useful to detect inconsistencies and errors in the metadata files. If multiple listings are specified, they will be shown in a rown.
 
 ```
-Usage: java -jar <this-file.jar> list [-enot] -f=FILE
+Usage: java -jar <this-file.jar> list [-enop] -f=FILE
 Generates different listings of the conference data.
   -e, --authors-with-different-emails
                             List the authors that have more than one different
@@ -228,7 +227,8 @@ Generates different listings of the conference data.
   -o, --authors-with-different-orcids
                             List the authors that have more than one different
                               ORCID in his/her signature.
-  -t, --paper-titles        List all the titles of the papers.
+  -p, --paper-titles        List all the titles of the papers alphabetically
+                              grouped per track.
 ```
 
 ### Discard processed elements (`discard-uuids`)
