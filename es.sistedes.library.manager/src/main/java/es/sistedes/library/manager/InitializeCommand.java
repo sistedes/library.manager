@@ -90,7 +90,7 @@ class InitializeCommand implements Callable<Integer> {
 	private String[] abstractsFormFields;
 	
 	@Option(names = { "-R", "--papers" }, paramLabel = "KEY-VALUE", required = true,
-			description = "Form fields (in the form of 'key=value' with NO SPACES around =) which denote that a given submission is an abstract. E.g. 'Category=Full Paper'."
+			description = "Form fields (in the form of 'key=value' with NO SPACES around =) which denote that a given submission is a paper. E.g. 'Category=Full Paper'. "
 					+ "This parameter may be used as many times as needed.")
 	private String[] papersFormFields;
 

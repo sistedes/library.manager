@@ -141,9 +141,9 @@ conference from EasyChair data.
   -P, --prefix=PREFIX      Handle prefix.
   -R, --papers=KEY-VALUE   Form fields (in the form of 'key=value' with NO
                              SPACES around =) which denote that a given
-                             submission is an abstract. E.g. 'Category=Full
-                             Paper'.This parameter may be used as many times as
-                             needed.
+                             submission is a paper. E.g. 'Category=Full
+                             Paper'. This parameter may be used as many times
+							 as needed.
   -x, --xslx=FILE          XSLX file as downloaded from the EasyChair
                              'Conference data download' menu.
   -y, --year=YEAR          Year of the edition to be prepared.
