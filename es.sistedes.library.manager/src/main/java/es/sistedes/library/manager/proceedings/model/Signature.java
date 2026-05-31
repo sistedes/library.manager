@@ -169,7 +169,7 @@ public class Signature {
 	 */
 	@JsonIgnore
 	public String getFullAffiliation() {
-		return StringUtils.defaultString(getAffiliation()) + ", " + StringUtils.defaultString(getCountry());
+		return StringUtils.isNotBlank(getAffiliation()) ? getAffiliation() + ", " + StringUtils.defaultString(getCountry()) : "";
 	}
 	
 	/**
